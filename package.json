@@ -1,0 +1,17 @@
+{
+  "name": "flow-map",
+  "version": "1.0.0",
+  "description": "A full-stack application for tracking expenses, managing cash flow, and visualizing financial analytics.",
+  "license": "ISC",
+  "scripts": {
+    "client": "cd client-web && npm run dev",
+    "server": "cd server && npm run dev",
+    "studio": "cd server && npm run prisma:studio",
+    "generate": "cd server && npm run prisma:generate",
+    "migrate": "cd server && npm run prisma:migrate",
+    "dev": "concurrently \"npm run client\" \"npm run server\" \"npm run studio\""
+  },
+  "dependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
