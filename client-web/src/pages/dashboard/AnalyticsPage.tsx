@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserContext } from "@/context/user.context";
 import { useGetBasicAnalyticsQuery, useGetCategoryDistributionQuery, useGetMonthlyAnalyticsQuery } from "@/services/analytics.service";
@@ -169,6 +170,14 @@ const AnalyticsPage = () => {
     }));
   }, [monthlyCategoryDistribution]);
 
+  const isLoading =
+    !basicAnalyticsResponse ||
+    !monthlyAnalyticsResponse ||
+    !cashDetailsResponse ||
+    !monthlyCategoryDistributionResponse;
+
+  // ... (keep hooks)
+
   return (
     <motion.div
       variants={containerVariants}
@@ -208,7 +217,11 @@ const AnalyticsPage = () => {
             <Card className="glass-card border-border/50 hover:border-primary/30 transition-all duration-300">
               <CardContent className="p-5">
                 <p className="text-sm text-muted-foreground">{insight.title}</p>
-                <p className="text-2xl font-bold mt-2">{insight.value}</p>
+                {
+                  isLoading ? <Skeleton className="h-8 w-24 mt-2" /> : (
+                    <p className="text-2xl font-bold mt-2">{insight.value}</p>
+                  )
+                }
                 <div className="flex items-center gap-1 mt-2">
                   {insight.trend === "up" ? (
                     <TrendingUp className="w-4 h-4 text-accent" />
@@ -233,136 +246,140 @@ const AnalyticsPage = () => {
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
-            <Card className="glass-card border-border/50">
-              <CardHeader>
-                <CardTitle className="text-lg font-semibold">Income vs Expenses vs Savings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-[400px]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={monthlyData}>
-                      <defs>
-                        <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                      <YAxis stroke="hsl(var(--muted-foreground))" />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          border: "1px solid hsl(var(--border))",
-                          borderRadius: "8px",
-                        }}
-                      />
-                      <Legend />
-                      <Area
-                        type="monotone"
-                        dataKey="income"
-                        stroke="#10b981"
-                        strokeWidth={2}
-                        fillOpacity={1}
-                        fill="url(#colorIncome)"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="expenses"
-                        stroke="#f59e0b"
-                        strokeWidth={2}
-                        fillOpacity={1}
-                        fill="url(#colorExpenses)"
-                      />
-                      <Area
-                        type="monotone"
-                        dataKey="savings"
-                        stroke="#14b8a6"
-                        strokeWidth={2}
-                        fillOpacity={1}
-                        fill="url(#colorSavings)"
-                      />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+            {isLoading ? <OverviewTabSkeleton /> : (
+              <Card className="glass-card border-border/50">
+                <CardHeader>
+                  <CardTitle className="text-lg font-semibold">Income vs Expenses vs Savings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="h-[400px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={monthlyData}>
+                        <defs>
+                          <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#14b8a6" stopOpacity={0.3} />
+                            <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
+                        <YAxis stroke="hsl(var(--muted-foreground))" />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            border: "1px solid hsl(var(--border))",
+                            borderRadius: "8px",
+                          }}
+                        />
+                        <Legend />
+                        <Area
+                          type="monotone"
+                          dataKey="income"
+                          stroke="#10b981"
+                          strokeWidth={2}
+                          fillOpacity={1}
+                          fill="url(#colorIncome)"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="expenses"
+                          stroke="#f59e0b"
+                          strokeWidth={2}
+                          fillOpacity={1}
+                          fill="url(#colorExpenses)"
+                        />
+                        <Area
+                          type="monotone"
+                          dataKey="savings"
+                          stroke="#14b8a6"
+                          strokeWidth={2}
+                          fillOpacity={1}
+                          fill="url(#colorSavings)"
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           <TabsContent value="categories" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
-              <Card className="glass-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold">Category Breakdown</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] w-full overflow-hidden">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie
-                          data={categoryBreakdown}
-                          cx="50%"
-                          cy="50%"
-                          innerRadius={60}
-                          outerRadius={100}
-                          paddingAngle={5}
-                          dataKey="value"
-                        >
-                          {categoryBreakdown.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <Tooltip />
-                        <Legend />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
+            {isLoading ? <CategoriesTabSkeleton /> : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+                <Card className="glass-card border-border/50">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Category Breakdown</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px] w-full overflow-hidden">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={categoryBreakdown}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={5}
+                            dataKey="value"
+                          >
+                            {categoryBreakdown.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip />
+                          <Legend />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
 
-              <Card className="glass-card border-border/50">
-                <CardHeader>
-                  <CardTitle className="text-lg font-semibold">Category Trends</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="h-[300px] w-full overflow-hidden">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={monthlyCatTrend}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="monthName" stroke="hsl(var(--muted-foreground))" />
-                        <YAxis stroke="hsl(var(--muted-foreground))" />
-                        <Tooltip
-                          content={({ active, payload }) => {
-                            if (active && payload && payload.length) {
-                              const data = payload[0].payload;
-                              return (
-                                <div className="bg-card border border-border p-2 rounded-lg shadow-sm">
-                                  <p className="font-semibold">{data.monthName}</p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Top: <span className="text-primary">{data.topCategory}</span>
-                                  </p>
-                                  <p className="text-sm font-bold">₹{data.topCategoryAmount}</p>
-                                </div>
-                              );
-                            }
-                            return null;
-                          }}
-                        />
-                        <Bar dataKey="topCategoryAmount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                <Card className="glass-card border-border/50">
+                  <CardHeader>
+                    <CardTitle className="text-lg font-semibold">Category Trends</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="h-[300px] w-full overflow-hidden">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={monthlyCatTrend}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="monthName" stroke="hsl(var(--muted-foreground))" />
+                          <YAxis stroke="hsl(var(--muted-foreground))" />
+                          <Tooltip
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload;
+                                return (
+                                  <div className="bg-card border border-border p-2 rounded-lg shadow-sm">
+                                    <p className="font-semibold">{data.monthName}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Top: <span className="text-primary">{data.topCategory}</span>
+                                    </p>
+                                    <p className="text-sm font-bold">₹{data.topCategoryAmount}</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                          <Bar dataKey="topCategoryAmount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </TabsContent>
 
           {/* <TabsContent value="comparison">
@@ -394,6 +411,51 @@ const AnalyticsPage = () => {
         </Tabs>
       </motion.div>
     </motion.div>
+  );
+};
+
+const OverviewTabSkeleton = () => {
+  return (
+    <Card className="glass-card border-border/50">
+      <CardHeader>
+        <CardTitle className="text-lg font-semibold">Income vs Expenses vs Savings</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[400px] w-full">
+          <Skeleton className="h-full w-full rounded-xl" />
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+const CategoriesTabSkeleton = () => {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
+      <Card className="glass-card border-border/50">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Category Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full flex items-center justify-center">
+            <Skeleton className="h-56 w-56 rounded-full" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-card border-border/50">
+        <CardHeader>
+          <CardTitle className="text-lg font-semibold">Category Trends</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px] w-full flex items-end justify-between gap-2">
+            {[...Array(12)].map((_, i) => (
+              <Skeleton key={i} className="w-full rounded-t-md" style={{ height: `${Math.random() * 60 + 20}%` }} />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

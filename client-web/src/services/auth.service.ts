@@ -45,17 +45,23 @@ const fetchUserByCookies = async () => {
 };
 
 const signout = async () => {
+
+  const toastId = toast.loading("Signing out...");
+
   try {
     const response = await POST("/auth/signout", null);
 
     if (response.success) {
-      toast.success("User Signed out successfully....");
+      toast.success("Signed out successfully", { id: toastId });
+      return response;
     } else {
-      toast.error(response.message || "Something went wrong");
+      toast.error(response.error || response.message || "Something went wrong", { id: toastId });
+      return response;
     }
   } catch (error) {
     console.log(error);
-    toast.error((error as Error).message);
+    toast.error("Something went wrong", { id: toastId });
+    return null;
   }
 };
 

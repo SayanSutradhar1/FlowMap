@@ -8,12 +8,12 @@ import {
   GetMonthlyInflow,
   GetInflows,
   AddInflow,
+  RecoverCash,
 } from "../controllers/cash.controller";
-import AuthMiddleware from "../middlewares/auth.middleware";
 
 const cashRouter = Router();
 
-cashRouter.route("/setLimit/:id").post(AuthMiddleware, SetDailyLimit);
+cashRouter.route("/setLimit/:id").post(SetDailyLimit);
 cashRouter.route("/get/:id").get(GetCash);
 cashRouter.route("/transactions/:id").get(GetTransactions);
 cashRouter.route("/getMonthlySavings/:id").get(GetMonthlySavings);
@@ -21,5 +21,6 @@ cashRouter.route("/getCashDetails/:id").get(GetCashDetails);
 cashRouter.route("/getMonthlyInflow/:id").get(GetMonthlyInflow);
 cashRouter.route("/getInflows/:id").get(GetInflows);
 cashRouter.route("/addInflow").post( AddInflow);
+cashRouter.route("/recoverCash/:id").post(RecoverCash);
 
 export default cashRouter;

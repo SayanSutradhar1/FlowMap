@@ -1,7 +1,7 @@
 import AnalyticsPreview from "@/components/Landing/AnalyticsPreview";
-import CTASection from "@/components/Landing/CTASection";
 import FeaturesSection from "@/components/Landing/FeaturesSection";
 import HeroSection from "@/components/Landing/HeroSection";
+import Footer from "@/components/Shared/Footer";
 
 const Index = () => {
   return (
@@ -9,7 +9,7 @@ const Index = () => {
       <HeroSection />
       <FeaturesSection />
       <AnalyticsPreview />
-      <CTASection />
+      <Footer />
     </main>
   );
 };

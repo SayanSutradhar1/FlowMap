@@ -1,4 +1,5 @@
-import { GET } from "@/utils/api";
+import type { SignUpParams } from "@/pages/Signup";
+import { GET, POST } from "@/utils/api";
 import type { UserType } from "@/utils/types";
 import { toast } from "sonner";
 
@@ -43,6 +44,29 @@ const fetchUserById = async (id: string) => {
   }
 };
 
+const signup = async (formData: SignUpParams) => {
+  const response = await POST<{
+    email: string;
+  }>("/user/signup", {
+    name : formData.name,
+    email : formData.email,
+    password : formData.password,
+    state : formData.state,
+    profession : formData.profession,
+    age : formData.age,
+  });
+  return response
+}
 
 
-export { fetchUserByEmail, fetchUserById };
+const verifyUser = async (email: string, otp: string) => {
+  const response = await POST("/user/verify", {
+    email,
+    otp,
+  });
+  return response
+}
+
+
+
+export { fetchUserByEmail, fetchUserById, signup, verifyUser };

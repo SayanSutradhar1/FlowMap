@@ -1,92 +1,132 @@
+import { Inflow } from "../../generated/prisma/browser";
 import { db } from "../config/prisma";
 import { redis } from "../main";
 import Wrapper from "../utils/asyncWrapper";
 import SendJSONResponse from "../utils/response";
 
-const AddCash = Wrapper(async (req, res) => {
-  const { id } = req.params;
-  const { amount } = req.body;
+const AddInflow = Wrapper(async (req, res) => {
+  // Path -> /api/cash/addInflow
 
-  if (amount < 0) {
-    SendJSONResponse(res, false, 400, "Amount cannot be negative");
+  const { description, amount, userId } = req.body;
+
+  const user = await db.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    SendJSONResponse(res, false, 404, "User not found");
     return;
   }
 
-  await db.user.update({
-    where: { id },
-    data: {
-      cash: {
-        update: {
-          amount: {
-            increment: amount,
-          },
+  let inflow: Inflow | undefined;
+
+  await db.$transaction(async (tx) => {
+    inflow = await tx.inflow.create({
+      data: {
+        userId,
+        amount,
+        description,
+      },
+    });
+
+    const updatedCash = await tx.cash.update({
+      where: {
+        userId,
+      },
+      data: {
+        amount: {
+          increment: amount,
         },
       },
-    },
-  });
+    });
 
-  const cash = await db.cash.update({
-    where: {
-      userId: id,
-    },
-    data: {
-      amount: {
-        increment: amount,
+    await tx.transaction.create({
+      data: {
+        userId,
+        amount,
+        transactionType: "IN",
+        refId: inflow.id,
+        currentBalance: updatedCash.amount,
       },
-    },
+    });
   });
 
-  SendJSONResponse<number>(
-    res,
-    true,
-    201,
-    "Cash added successfully",
-    cash.amount,
-  );
+  SendJSONResponse(res, true, 200, "Inflow added successfully", inflow);
+  return;
 });
 
 const RecoverCash = Wrapper(async (req, res) => {
+
+  // Path -> /api/cash/recoverCash/:id
+
   const { id } = req.params;
-  const { expenseId } = req.body;
+  const { expenseId, description } = req.body;
 
-  let expense = JSON.parse((await redis.get(`expense_${expenseId}`)) || "null");
-
-  if (!expense) {
-    expense = await db.expense.findUnique({
+  await db.$transaction(async (tx) => {
+    const expense = await tx.expense.update({
       where: {
         id: expenseId,
+        userId: id,
+        recoverable: true,
+      },
+      data: {
+        recoverable: false,
       },
     });
-  }
 
-  if (!expense) {
-    SendJSONResponse(res, false, 404, "Expense not found");
-    return;
-  }
+    if (!expense) {
+      SendJSONResponse(res, false, 404, "Expense not found");
+      return;
+    }
 
-  if (!expense.recoverable) {
-    SendJSONResponse(res, false, 400, "Expense is not recoverable");
-    return;
-  }
-
-  await db.expense.update({
-    where: {
-      id: expenseId,
-    },
-    data: {
-      recoverable: false,
-    },
-  });
-
-  await db.cash.update({
-    where: {
-      userId: id,
-    },
-    data: {
-      amount: {
-        increment: expense.amount,
+    await tx.cashRecovery.create({
+      data: {
+        expenseId,
+        amount: expense.amount,
+        description,
       },
-    },
+    });
+
+    const updatedCash = await tx.cash.update({
+      where: {
+        userId: id,
+      },
+      data: {
+        amount: {
+          increment: expense.amount,
+        },
+      },
+    });
+
+    const inflow = await tx.inflow.create({
+      data: {
+        userId: id,
+        amount: expense.amount,
+        description : `Cash Recovered from ${expense.name}`,
+      },
+    });
+
+    const transaction = await tx.transaction.create({
+      data: {
+        userId: id,
+        amount: expense.amount,
+        transactionType: "IN",
+        refId: inflow.id,
+        currentBalance: updatedCash.amount,
+      },
+    });
+
+    if (!transaction) {
+      SendJSONResponse(
+        res,
+        false,
+        404,
+        "Transaction was not created... Process has been rolled back",
+      );
+      return;
+    }
   });
 
   SendJSONResponse(res, true, 200, "Cash recovered successfully");
@@ -96,26 +136,11 @@ const RecoverCash = Wrapper(async (req, res) => {
 const GetCash = Wrapper(async (req, res) => {
   const { id } = req.params; // User Id
 
-  let cash = JSON.parse((await redis.get(`cash_user:${id}`)) || "null");
-
-  if (cash) {
-    SendJSONResponse<typeof cash>(
-      res,
-      true,
-      200,
-      "Cash fetched successfully",
-      cash,
-    );
-    return;
-  }
-
-  cash = await db.cash.findUnique({
+  const cash = await db.cash.findUnique({
     where: {
       userId: id,
     },
   });
-
-  await redis.setex(`cash_user:${id}`, 60 * 10, JSON.stringify(cash));
 
   SendJSONResponse<typeof cash>(
     res,
@@ -233,7 +258,7 @@ const GetTransactions = Wrapper(async (req, res) => {
   // Path -> /api/cash/transactions/:id
 
   const { id } = req.params;
-  const { f, t, recent } = req.query;
+  const { f, t, recent, take, skip } = req.query;
 
   const transactions = await db.transaction.findMany({
     where: {
@@ -250,7 +275,25 @@ const GetTransactions = Wrapper(async (req, res) => {
     orderBy: {
       createdAt: "desc",
     },
-    take: recent ? 5 : undefined,
+    take: take ? Number(take) : recent ? 5 : undefined,
+    skip: skip ? Number(skip) : undefined,
+  });
+
+  const metaData = await db.transaction.aggregate({
+    where: {
+      userId: id,
+      createdAt: {
+        gte: f
+          ? new Date(new Date().setDate(new Date().getDate() - Number(f)))
+          : undefined,
+        lte: t
+          ? new Date(new Date().setDate(new Date().getDate() + Number(t)))
+          : undefined,
+      },
+    },
+    _count: {
+      id: true,
+    },
   });
 
   const inflowIds = transactions
@@ -281,7 +324,10 @@ const GetTransactions = Wrapper(async (req, res) => {
     transactionDetails: detailsMap.get(transaction.refId) || null,
   }));
 
-  SendJSONResponse(res, true, 200, "Transactions fetched successfully", result);
+  SendJSONResponse(res, true, 200, "Transactions fetched successfully", {
+    transactions: result,
+    count: metaData._count.id,
+  });
   return;
 });
 
@@ -378,55 +424,42 @@ const GetInflows = Wrapper(async (req, res) => {
 
   const { id } = req.params;
 
+  const { take, skip } = req.query;
+
   const inflows = await db.inflow.findMany({
     where: {
       userId: id,
     },
+    take: take ? Number(take) : undefined,
+    skip: skip ? Number(skip) : undefined,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
-  SendJSONResponse(res, true, 200, "Inflows fetched successfully", inflows);
-  return;
-});
-
-const AddInflow = Wrapper(async (req, res) => {
-  // Path -> /api/cash/addInflow
-
-  const { description, amount, userId } = req.body;
-
-  const user = await db.user.findUnique({
+  const metaData = await db.inflow.aggregate({
     where: {
-      id: userId,
+      userId: id,
+    },
+    _count: {
+      id: true,
+    },
+    _sum: {
+      amount: true,
     },
   });
 
-  if (!user) {
-    SendJSONResponse(res, false, 404, "User not found");
-    return;
-  }
+  const data = {
+    inflows,
+    count: metaData._count.id,
+    totalAmount: metaData._sum.amount,
+  };
 
-  const inflow = await db.inflow.create({
-    data: {
-      userId,
-      amount,
-      description,
-    },
-  });
-
-  await db.transaction.create({
-    data: {
-      userId,
-      amount,
-      transactionType: "IN",
-      refId: inflow.id,
-    },
-  });
-
-  SendJSONResponse(res, true, 200, "Inflow added successfully", inflow);
+  SendJSONResponse(res, true, 200, "Inflows fetched successfully", data);
   return;
 });
 
 export {
-  AddCash,
   RecoverCash,
   GetCash,
   SetDailyLimit,

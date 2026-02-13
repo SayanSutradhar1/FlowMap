@@ -20,6 +20,8 @@ model User {
   password        String
   state           State
   profession      Profession
+  age             Int           @default(18)
+  gender          Gender?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   expenses        Expense[]
@@ -29,19 +31,27 @@ model User {
   isVerified      Boolean       @default(false)
   verifiedAt      DateTime?
   verificationOtp String?
+  budgets         Budget[]
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
 }
 
 model Expense {
-  id          String          @id @default(uuid())
-  userId      String
-  user        User            @relation(fields: [userId], references: [id])
-  name        String
-  amount      Int
-  recoverable Boolean?        @default(false)
-  category    ExpenseCategory
-  description String
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id             String          @id @default(uuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id])
+  name           String
+  amount         Int
+  recoverable    Boolean?        @default(false)
+  category       ExpenseCategory
+  description    String
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  cashRecoveries CashRecovery[]
 }
 
 model Cash {
@@ -73,6 +83,29 @@ model Transaction {
   refId           String
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  currentBalance  Int             @default(0)
+}
+
+model Budget {
+  id        String          @id @default(uuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  amount    Int
+  category  ExpenseCategory
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([userId, category])
+}
+
+model CashRecovery {
+  id          String   @id @default(uuid())
+  expenseId   String
+  expense     Expense  @relation(fields: [expenseId], references: [id])
+  description String?
+  amount      Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 enum State {

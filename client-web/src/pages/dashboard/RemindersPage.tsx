@@ -114,6 +114,17 @@ const RemindersPage = () => {
       animate="visible"
       className="space-y-6 w-full overflow-x-hidden"
     >
+      {/* Development Warning */}
+      <motion.div
+        variants={itemVariants}
+        className="glass-card border-amber-500/20 bg-amber-500/10 p-4 rounded-xl flex items-center gap-3 text-amber-600 dark:text-amber-500"
+      >
+        <AlertCircle className="w-5 h-5 shrink-0" />
+        <p className="font-medium">
+          This page is under development and it is just a demo design to show.
+        </p>
+      </motion.div>
+
       {/* Header */}
       <motion.div variants={itemVariants} className="flex flex-wrap items-center justify-between gap-4">
         <div>
@@ -246,27 +257,25 @@ const RemindersPage = () => {
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 group ${
-                      reminder.isPaid
+                    className={`flex items-center justify-between p-4 rounded-xl transition-all duration-300 group ${reminder.isPaid
                         ? "bg-emerald-500/10 border border-emerald-500/20"
                         : isOverdue
-                        ? "bg-red-500/10 border border-red-500/20"
-                        : isDueSoon
-                        ? "bg-amber-500/10 border border-amber-500/20"
-                        : "bg-muted/30 hover:bg-muted/50"
-                    }`}
+                          ? "bg-red-500/10 border border-red-500/20"
+                          : isDueSoon
+                            ? "bg-amber-500/10 border border-amber-500/20"
+                            : "bg-muted/30 hover:bg-muted/50"
+                      }`}
                   >
                     <div className="flex items-center gap-4">
                       <div
-                        className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                          reminder.isPaid
+                        className={`w-12 h-12 rounded-xl flex items-center justify-center ${reminder.isPaid
                             ? "bg-emerald-500/20"
                             : isOverdue
-                            ? "bg-red-500/20"
-                            : isDueSoon
-                            ? "bg-amber-500/20"
-                            : "bg-primary/20"
-                        }`}
+                              ? "bg-red-500/20"
+                              : isDueSoon
+                                ? "bg-amber-500/20"
+                                : "bg-primary/20"
+                          }`}
                       >
                         {reminder.isPaid ? (
                           <CheckCircle className="w-5 h-5 text-emerald-500" />
@@ -295,23 +304,22 @@ const RemindersPage = () => {
                       <div className="text-right">
                         <p className="font-semibold">₹{reminder.amount.toLocaleString()}</p>
                         <p
-                          className={`text-xs ${
-                            reminder.isPaid
+                          className={`text-xs ${reminder.isPaid
                               ? "text-emerald-500"
                               : isOverdue
-                              ? "text-red-500"
-                              : isDueSoon
-                              ? "text-amber-500"
-                              : "text-muted-foreground"
-                          }`}
+                                ? "text-red-500"
+                                : isDueSoon
+                                  ? "text-amber-500"
+                                  : "text-muted-foreground"
+                            }`}
                         >
                           {reminder.isPaid
                             ? "Paid"
                             : isOverdue
-                            ? `${Math.abs(daysUntilDue)} days overdue`
-                            : daysUntilDue === 0
-                            ? "Due today"
-                            : `Due in ${daysUntilDue} days`}
+                              ? `${Math.abs(daysUntilDue)} days overdue`
+                              : daysUntilDue === 0
+                                ? "Due today"
+                                : `Due in ${daysUntilDue} days`}
                         </p>
                       </div>
 

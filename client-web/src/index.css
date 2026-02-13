@@ -3,8 +3,8 @@
 
 @theme {
   /* Fonts */
-  --font-display: 'Sora', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-display: "Sora", sans-serif;
+  --font-body: "Inter", sans-serif;
 
   /* Border radius */
   --radius-lg: 0.75rem;
@@ -58,60 +58,132 @@
   --animate-gradient-shift: gradient-shift 8s ease infinite;
 
   @keyframes accordion-down {
-    from { height: 0; }
-    to { height: var(--radix-accordion-content-height); }
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
   }
 
   @keyframes accordion-up {
-    from { height: var(--radix-accordion-content-height); }
-    to { height: 0; }
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
   }
 
   @keyframes fade-up {
-    0% { opacity: 0; transform: translateY(30px); }
-    100% { opacity: 1; transform: translateY(0); }
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   @keyframes fade-in {
-    0% { opacity: 0; }
-    100% { opacity: 1; }
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
   }
 
   @keyframes scale-in {
-    0% { opacity: 0; transform: scale(0.9); }
-    100% { opacity: 1; transform: scale(1); }
+    0% {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
   }
 
   @keyframes slide-in-right {
-    0% { opacity: 0; transform: translateX(50px); }
-    100% { opacity: 1; transform: translateX(0); }
+    0% {
+      opacity: 0;
+      transform: translateX(50px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(0);
+    }
   }
 
   @keyframes gradient-shift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
   }
 
   @keyframes floating {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
   }
 
   @keyframes pulse-glow {
-    0%, 100% { opacity: 0.5; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.05); }
+    0%,
+    100% {
+      opacity: 0.5;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.05);
+    }
   }
 }
 
 /* Custom CSS Variables */
 :root {
-  --gradient-primary: linear-gradient(135deg, hsl(174 72% 46%), hsl(190 80% 40%));
-  --gradient-secondary: linear-gradient(135deg, hsl(38 92% 55%), hsl(25 95% 50%));
-  --gradient-accent: linear-gradient(135deg, hsl(280 65% 60%), hsl(320 70% 55%));
-  --gradient-hero: linear-gradient(180deg, hsl(222 47% 6%) 0%, hsl(222 50% 10%) 50%, hsl(222 45% 8%) 100%);
-  --gradient-card: linear-gradient(145deg, hsl(222 40% 12% / 0.8), hsl(222 40% 8% / 0.6));
-  --gradient-glow: radial-gradient(ellipse at center, hsl(174 72% 46% / 0.15), transparent 70%);
-  
+  --gradient-primary: linear-gradient(
+    135deg,
+    hsl(174 72% 46%),
+    hsl(190 80% 40%)
+  );
+  --gradient-secondary: linear-gradient(
+    135deg,
+    hsl(38 92% 55%),
+    hsl(25 95% 50%)
+  );
+  --gradient-accent: linear-gradient(
+    135deg,
+    hsl(280 65% 60%),
+    hsl(320 70% 55%)
+  );
+  --gradient-hero: linear-gradient(
+    180deg,
+    hsl(222 47% 6%) 0%,
+    hsl(222 50% 10%) 50%,
+    hsl(222 45% 8%) 100%
+  );
+  --gradient-card: linear-gradient(
+    145deg,
+    hsl(222 40% 12% / 0.8),
+    hsl(222 40% 8% / 0.6)
+  );
+  --gradient-glow: radial-gradient(
+    ellipse at center,
+    hsl(174 72% 46% / 0.15),
+    transparent 70%
+  );
+
   --shadow-glow-primary: 0 0 60px hsl(174 72% 46% / 0.3);
   --shadow-glow-secondary: 0 0 40px hsl(38 92% 55% / 0.2);
   --shadow-card: 0 8px 32px hsl(222 47% 2% / 0.4);
@@ -132,7 +204,12 @@ body {
   font-family: var(--font-body);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-display);
 }
 
@@ -163,7 +240,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .glow-effect::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -2px;
   background: var(--gradient-primary);
@@ -192,9 +269,22 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-pattern {
-  background-image: radial-gradient(ellipse at 50% 0%, hsl(174 72% 46% / 0.12) 0%, transparent 50%);
+  background-image: radial-gradient(
+    ellipse at 50% 0%,
+    hsl(174 72% 46% / 0.12) 0%,
+    transparent 50%
+  );
 }
 
 .text-balance {
   text-wrap: balance;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
 }

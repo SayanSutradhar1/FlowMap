@@ -10,6 +10,8 @@ import cashRouter from "./routes/cash.route";
 import expenseRouter from "./routes/expense.route";
 import userRouter from "./routes/user.route";
 import analyticsRouter from "./routes/analytics.route";
+import budgetRouter from "./routes/budget.route";
+import reportRouter from "./routes/report.route";
 
 
 dotenv.config({ path: "../.env" });
@@ -54,6 +56,16 @@ server.useRouter({
 server.useRouter({
   path:"/api/analytics",
   router: analyticsRouter
+})
+
+server.useRouter({
+  path:"/api/budget",
+  router: budgetRouter
+})
+
+server.useRouter({
+  path:"/api/reports",
+  router: reportRouter
 })
 
 app.use(ErrorMiddleware);

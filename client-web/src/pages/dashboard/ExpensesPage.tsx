@@ -17,18 +17,26 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { motion } from "framer-motion";
 import {
   Calendar,
   Car,
   CreditCard,
-  Edit,
   Filter,
   GraduationCap,
   Heart,
   Home,
   Music,
   Plus,
+  RefreshCcw,
   Search,
   ShoppingBag,
   Smartphone,
@@ -37,7 +45,23 @@ import {
   UtensilsCrossed,
   Zap
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+const getCategoryIcon = (category: string) => {
+  switch (category) {
+    case "FOOD": return <UtensilsCrossed className="w-5 h-5 text-orange-500" />;
+    case "TRAVEL": return <Car className="w-5 h-5 text-blue-500" />;
+    case "ENTERTAINMENT": return <Music className="w-5 h-5 text-purple-500" />;
+    case "BILL": return <Zap className="w-5 h-5 text-yellow-500" />;
+    case "SHOPPING": return <ShoppingBag className="w-5 h-5 text-pink-500" />;
+    case "ELECTRONICS": return <Smartphone className="w-5 h-5 text-gray-500" />;
+    case "EDUCATION": return <GraduationCap className="w-5 h-5 text-indigo-500" />;
+    case "HEALTH": return <Heart className="w-5 h-5 text-red-500" />;
+    case "HOUSING": return <Home className="w-5 h-5 text-teal-500" />;
+    case "INVESTS": return <TrendingDown className="w-5 h-5 text-green-500" />;
+    default: return <CreditCard className="w-5 h-5 text-muted-foreground" />;
+  }
+};
 
 const categories = [
   "EDUCATION",
@@ -54,6 +78,9 @@ const categories = [
   "OTHER",
 ];
 
+import CashRecoveryModal from "@/components/Elements/CashRecoveryModal";
+import ListSkeleton from "@/components/Layout/Skeletons/ListSkeleton";
+import { useUserContext } from "@/context/user.context";
 import { useAddNewExpenseMutation, useGetAllExpensesQuery } from "@/services/expense.service";
 import { toast } from "sonner";
 
@@ -76,14 +103,41 @@ const ExpensesPage = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [showDateFilter, setShowDateFilter] = useState(false);
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
+  const [currentPage, setCurrentPage] = useState(1)
+  const [isRecoverModalOpen, setIsRecoverModalOpen] = useState(false)
+
+  const context = useUserContext()
+
+  const user = useMemo(() => context?.user, [context.user])
 
   const [addNewExpense] = useAddNewExpenseMutation({
     fixedCacheKey: "Expense",
   })
 
-  const { data: expensesData } = useGetAllExpensesQuery()
+  const { data: expensesDataResponse, isLoading: initialLoading } = useGetAllExpensesQuery({
+    take: 10,
+    skip: (currentPage - 1) * 10
+  })
 
-  const expenses = expensesData?.data || []
+  const expenses = useMemo(() => {
+
+    return expensesDataResponse?.data?.expenses || []
+
+  }, [expensesDataResponse?.data?.expenses])
+
+  const handleChangePage = (change: "next" | "previous") => {
+
+    if (change === "next" && expenses.length < 10) return
+    if (change === "previous" && currentPage === 1) return
+
+    if (change === "next") {
+      setCurrentPage((prev) => prev + 1)
+    } else {
+      setCurrentPage((prev) => prev - 1)
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" })
+  }
 
   const filteredExpenses = expenses.filter((expense) => {
     const matchesSearch = expense.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -124,7 +178,7 @@ const ExpensesPage = () => {
       const response = await addNewExpense({
         // TODO: Replace hardcoded userId with actual user context
         name: name,
-        userId: "92d8916f-1e2e-449c-a379-6fcc0f78aef0",
+        userId: user?.id!,
         amount: amount,
         category: category,
         description: description,
@@ -314,96 +368,123 @@ const ExpensesPage = () => {
       </motion.div>
 
       {/* Expenses List */}
-      <motion.div variants={itemVariants}>
-        <Card className="glass-card border-border/50">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold flex items-center justify-between">
-              <span>All Expenses ({filteredExpenses.length})</span>
-              <span className="text-sm font-normal text-muted-foreground">
-                Total: ₹{filteredExpenses.reduce((acc, exp) => acc + exp.amount, 0).toLocaleString()}
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {filteredExpenses.map((expense, index) => {
-                const getCategoryIcon = (category: string) => {
-                  switch (category) {
-                    case "FOOD": return <UtensilsCrossed className="w-5 h-5 text-orange-500" />;
-                    case "TRAVEL": return <Car className="w-5 h-5 text-blue-500" />;
-                    case "ENTERTAINMENT": return <Music className="w-5 h-5 text-purple-500" />;
-                    case "BILL": return <Zap className="w-5 h-5 text-yellow-500" />;
-                    case "SHOPPING": return <ShoppingBag className="w-5 h-5 text-pink-500" />; // Assuming 'SHOPPING' might be added later, keeping strict to current list
-                    case "ELECTRONICS": return <Smartphone className="w-5 h-5 text-gray-500" />;
-                    case "EDUCATION": return <GraduationCap className="w-5 h-5 text-indigo-500" />;
-                    case "HEALTH": return <Heart className="w-5 h-5 text-red-500" />;
-                    case "HOUSING": return <Home className="w-5 h-5 text-teal-500" />;
-                    case "INVESTS": return <TrendingDown className="w-5 h-5 text-green-500" />;
-                    default: return <CreditCard className="w-5 h-5 text-muted-foreground" />;
-                  }
-                };
-
-                return (
-                  <motion.div
-                    key={expense.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                    className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/40 hover:bg-accent/5 transition-all duration-300 group"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className={`w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center`}>
-                        {getCategoryIcon(expense.category)}
-                      </div>
-                      <div>
-                        <p className="font-semibold text-foreground">{expense.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground font-medium">
-                            {expense.category}
-                          </span>
-                          {expense.description && (
-                            <span className="text-xs text-muted-foreground line-clamp-1 max-w-[150px] sm:max-w-xs" title={expense.description}>
-                              {expense.description}
+      {
+        initialLoading ? <ListSkeleton /> : (
+          <motion.div variants={itemVariants}>
+            <Card className="glass-card border-border/50">
+              <CardHeader>
+                <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                  <span>All Expenses ({filteredExpenses.length})/({expensesDataResponse?.data?.count})</span>
+                  <span>
+                    Page No: {currentPage}/{Math.ceil(expensesDataResponse?.data?.count! / 10)}
+                  </span>
+                  <span className="text-sm font-normal text-muted-foreground">
+                    Total: ₹{filteredExpenses.reduce((acc, exp) => acc + exp.amount, 0).toLocaleString()}/₹{expensesDataResponse?.data?.total}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[180px]">Category</TableHead>
+                      <TableHead>Details</TableHead>
+                      <TableHead className="hidden md:table-cell">Date</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="w-[100px] text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredExpenses.map((expense) => (
+                      <TableRow key={expense.id} className="group">
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
+                              {getCategoryIcon(expense.category)}
+                            </div>
+                            <span className="text-sm font-medium bg-secondary/50 px-2 py-1 rounded-md">
+                              {expense.category}
                             </span>
-                          )}
-                          {expense.recoverable && (
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium">
-                              Reimbursable
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className="font-bold text-base text-rose-500">
-                          -₹{expense.amount.toLocaleString()}
-                        </p>
-                        <p className="text-xs text-muted-foreground font-medium">
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold">{expense.name}</span>
+                            <div className="flex items-center gap-2">
+                              {expense.description && (
+                                <span className="text-xs text-muted-foreground line-clamp-1 max-w-[200px]" title={expense.description}>
+                                  {expense.description}
+                                </span>
+                              )}
+                              {expense.recoverable && (
+                                <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 font-medium border border-emerald-500/20">
+                                  Reimbursable
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell text-muted-foreground">
                           {new Date(expense.createdAt).toLocaleDateString("en-US", {
                             month: "short",
                             day: "numeric",
+                            year: "numeric"
                           })}
-                        </p>
-                      </div>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-background/80">
-                          <Edit className="w-4 h-4 text-muted-foreground" />
-                        </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10">
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+                        </TableCell>
+                        <TableCell className="text-right font-bold text-rose-500">
+                          -₹{expense.amount.toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            {
+                              expense.recoverable && (<>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10" onClick={() => setIsRecoverModalOpen(true)}>
+                                  <RefreshCcw className="w-4 h-4 text-destructive" />
+                                </Button>
+                                <CashRecoveryModal
+                                  id={user?.id || ""}
+                                  expenseId={expense.id || ""}
+                                  open={isRecoverModalOpen}
+                                  onOpenChange={setIsRecoverModalOpen}
+                                />
+                              </>
+                              )
+
+                            }
+                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-destructive/10">
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+                {!filteredExpenses.length && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No expenses found matching your criteria
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        )
+      }
+      <div className="flex items-center justify-end gap-2 mr-4">
+        <Button variant="outline" onClick={() => handleChangePage("previous")}>
+          Previous
+        </Button>
+        <Button variant="outline" onClick={() => handleChangePage("next")}>
+          Next
+        </Button>
+      </div>
+
     </motion.div>
   );
 };
+
+
+
+
 
 export default ExpensesPage;

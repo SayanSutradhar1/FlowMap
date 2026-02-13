@@ -1,13 +1,11 @@
 import { motion } from "framer-motion";
-import { 
-  Wallet, 
-  BarChart3, 
-  Bell, 
-  Shield, 
-  Zap,
-  Target,
+import {
+  BarChart3,
+  Bell,
   Calendar,
-  TrendingDown
+  Target,
+  TrendingDown,
+  Wallet
 } from "lucide-react";
 
 const features = [
@@ -87,8 +85,9 @@ const FeaturesSection = () => {
   return (
     <section id="features" className="relative py-32 overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-muted/20 to-transparent" />
-      
+      <div className="absolute inset-0 bg-linear-to-b from-transparent via-muted/20 to-transparent" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-size-[14px_24px] mask-[radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+
       <div className="relative z-10 max-w-7xl mx-auto px-6">
         {/* Section Header */}
         <motion.div
@@ -107,7 +106,7 @@ const FeaturesSection = () => {
             <span className="gradient-text">Take Control</span>
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Powerful tools designed to help you understand your spending, 
+            Powerful tools designed to help you understand your spending,
             set meaningful goals, and build better financial habits.
           </p>
         </motion.div>

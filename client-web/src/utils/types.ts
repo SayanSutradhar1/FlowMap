@@ -4,6 +4,8 @@ export interface UserType {
   email: string;
   state: State;
   profession: Profession;
+  age: number;
+  gender: string;
   createdAt: Date;
   updatedAt: Date;
   expenses: string[];
@@ -57,6 +59,12 @@ export interface ExpenseType {
   updatedAt: Date;
 }
 
+export interface PaginatedExpenseType {
+  expenses : ExpenseType[]
+  count : number
+  total : number
+}
+
 export interface TransactionType {
   id: string;
   userId: string;
@@ -71,6 +79,12 @@ export interface TransactionType {
   refId: string;
   createdAt: Date;
   updatedAt: Date;
+  currentBalance: number;
+}
+
+export interface PaginatedTransactionType {
+  transactions: TransactionType[];
+  count: number;
 }
 
 export interface InflowType {
@@ -80,6 +94,12 @@ export interface InflowType {
   description: string;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface PaginatedInflowType {
+  inflows: InflowType[];
+  count: number;
+  totalAmount: number;
 }
 
 export interface BasicAnalyticsType {
@@ -111,6 +131,23 @@ export interface MonthlyAnalysisType {
     month: number;
     amount: number;
   }[];
+}
+
+export interface BudgetDetailsType {
+  category: string;
+  amount: number;
+  budgetAmount: number | null;
+}
+
+export interface TransactionsReportType {
+  transactionId: string;
+  amount: number;
+  type: "IN" | "OUT";
+  description: string;
+  date: string;
+  cashIn: number;
+  cashOut: number;
+  currentBalance: number;
 }
 
 export type State =
@@ -163,6 +200,11 @@ export type ExpenseCategory =
   | "CLOTHING"
   | "INVESTS"
   | "MISCELLANEOUS"
+  | "OTHER";
+
+export type Gender =
+  | "MALE"
+  | "FEMALE"
   | "OTHER";
 
 

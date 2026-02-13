@@ -9,6 +9,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { motion } from "framer-motion";
 import {
     Calendar,
@@ -17,8 +25,9 @@ import {
     TrendingDown,
     TrendingUp
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
+import ListSkeleton from "@/components/Layout/Skeletons/ListSkeleton";
 import { useUserContext } from "@/context/user.context";
 import { useGetTransactionsQuery } from "@/services/cash.service";
 import type { TransactionType } from "@/utils/types";
@@ -42,19 +51,24 @@ const TransactionsPage = () => {
     const [typeFilter, setTypeFilter] = useState("all");
     const [showDateFilter, setShowDateFilter] = useState(false);
     const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
+    const [currentPage, setCurrentPage] = useState(1);
 
-    const { data: transactionsData } = useGetTransactionsQuery({
+    const { data: transactionInitialResponse, isLoading } = useGetTransactionsQuery({
         id: user?.id || "",
         // Pass date filters to backend if both are present, or rely on client filtering?
         // Since ExpensesPage does client side, and we want to allow selecting only 'from', let's fetch all (or recent ones if default limits) and filter client side for now unless dataset is huge.
         // But cash.service supports 'f' and 't'. Let's use them if available.
         f: dateRange.from || undefined,
-        t: dateRange.to || undefined
+        t: dateRange.to || undefined,
+        take: 10,
+        skip: (currentPage - 1) * 10,
     }, {
         skip: !user?.id
     });
 
-    const transactions = transactionsData?.data || [];
+    const transactions = useMemo(() => {
+        return transactionInitialResponse?.data?.transactions || []
+    }, [transactionInitialResponse])
 
     const filteredTransactions = transactions.filter((transaction: TransactionType) => {
         const matchesSearch = transaction.id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -64,6 +78,20 @@ const TransactionsPage = () => {
         // cash.service passes if t && f, or t, or f. So it handles partials.
         return matchesSearch && matchesType;
     });
+
+    const handleChangePage = (change: "next" | "previous") => {
+
+        if (change === "next" && transactions.length < 10) return
+        if (change === "previous" && currentPage === 1) return
+
+        if (change === "next") {
+            setCurrentPage((prev) => prev + 1)
+        } else {
+            setCurrentPage((prev) => prev - 1)
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" })
+    }
 
     return (
         <motion.div
@@ -162,77 +190,100 @@ const TransactionsPage = () => {
             </motion.div>
 
             {/* Transactions List */}
-            <motion.div variants={itemVariants}>
-                <Card className="glass-card border-border/50">
-                    <CardHeader>
-                        <CardTitle className="text-lg font-semibold flex items-center justify-between">
-                            <span>All Transactions ({filteredTransactions.length})</span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {filteredTransactions.map((transaction: TransactionType, index: number) => (
-                                <motion.div
-                                    key={transaction.id}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.05 }}
-                                    className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/40 hover:bg-accent/5 transition-all duration-300 group"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div
-                                            className={`w-12 h-12 rounded-xl flex items-center justify-center ${transaction.transactionType === "IN"
-                                                ? "bg-emerald-500/20 text-emerald-500"
-                                                : "bg-red-500/20 text-red-500"
-                                                }`}
-                                        >
-                                            {transaction.transactionType === "IN" ? (
-                                                <TrendingUp className="w-6 h-6" />
-                                            ) : (
-                                                <TrendingDown className="w-6 h-6" />
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className="font-semibold text-foreground">
-                                                {transaction.transactionType === "IN" ? "Income" : "Expense"}
-                                            </p>
-                                            <p className="text-sm text-muted-foreground flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                                                <span className="font-mono text-xs opacity-70">
-                                                    ID: {transaction.id.substring(0, 8)}...
+
+            {
+                isLoading ? <ListSkeleton /> : <motion.div variants={itemVariants}>
+                    <Card className="glass-card border-border/50">
+                        <CardHeader className="flex items-center justify-between">
+                            <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                                <span>All Transactions ({filteredTransactions.length})({transactionInitialResponse?.data?.count})</span>
+                            </CardTitle>
+                            <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                                <span>Page : {currentPage}/{Math.ceil((transactionInitialResponse?.data?.count ?? 0) / 10)}</span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Type</TableHead>
+                                        <TableHead>Description</TableHead>
+                                        <TableHead className="hidden md:table-cell">Date</TableHead>
+                                        <TableHead className="text-right">Amount</TableHead>
+                                        <TableHead className="text-right">Balance</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredTransactions.map((transaction) => (
+                                        <TableRow key={transaction.id} className="group">
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <div
+                                                        className={`w-10 h-10 rounded-lg flex items-center justify-center ${transaction.transactionType === "IN"
+                                                            ? "bg-emerald-500/20 text-emerald-500"
+                                                            : "bg-red-500/20 text-red-500"
+                                                            }`}
+                                                    >
+                                                        {transaction.transactionType === "IN" ? (
+                                                            <TrendingUp className="w-5 h-5" />
+                                                        ) : (
+                                                            <TrendingDown className="w-5 h-5" />
+                                                        )}
+                                                    </div>
+                                                    <span className={`text-sm font-medium px-2 py-1 rounded-md ${transaction.transactionType === "IN"
+                                                        ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                                                        : "bg-red-500/10 text-red-600 border border-red-500/20"
+                                                        }`}>
+                                                        {transaction.transactionType === "IN" ? "Income" : "Expense"}
+                                                    </span>
+                                                </div>
+                                            </TableCell>
+                                            <TableCell>
+                                                <span className="font-medium">
+                                                    {transaction.transactionDetails?.description || "N/A"}
                                                 </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <div className="text-right">
-                                        <p
-                                            className={`font-bold text-base ${transaction.transactionType === "IN"
+                                            </TableCell>
+
+                                            <TableCell className="hidden md:table-cell text-muted-foreground">
+                                                {new Date(transaction.createdAt).toLocaleDateString("en-US", {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                    year: "numeric",
+                                                    hour: '2-digit',
+                                                    minute: '2-digit'
+                                                })}
+                                            </TableCell>
+                                            <TableCell className={`text-right font-bold ${transaction.transactionType === "IN"
                                                 ? "text-emerald-500"
                                                 : "text-foreground"
-                                                }`}
-                                        >
-                                            {transaction.transactionType === "IN" ? "+" : "-"}₹
-                                            {transaction.amount.toLocaleString()}
-                                        </p>
-                                        <p className="text-xs text-muted-foreground font-medium">
-                                            {new Date(transaction.createdAt).toLocaleDateString("en-US", {
-                                                month: "short",
-                                                day: "numeric",
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </p>
-                                    </div>
-                                </motion.div>
-                            ))}
+                                                }`}>
+                                                {transaction.transactionType === "IN" ? "+" : "-"}₹
+                                                {transaction.amount.toLocaleString()}
+                                            </TableCell>
+                                            <TableCell className="text-right font-medium">
+                                                ₹{transaction.currentBalance?.toLocaleString() || "0"}
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
                             {!filteredTransactions.length && (
                                 <div className="text-center py-8 text-muted-foreground">
                                     No transactions found matching your criteria.
                                 </div>
                             )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </motion.div>
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            }
+            <div className="flex items-center justify-end gap-2 mr-4">
+                <Button variant="outline" onClick={() => handleChangePage("previous")}>
+                    Previous
+                </Button>
+                <Button variant="outline" onClick={() => handleChangePage("next")}>
+                    Next
+                </Button>
+            </div>
         </motion.div>
     );
 };

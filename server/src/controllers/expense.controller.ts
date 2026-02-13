@@ -9,21 +9,25 @@ const AddNewExpense = Wrapper(async (req, res) => {
 
   const { name, userId, amount, category, description, recoverable } = req.body;
 
-  let cash = JSON.parse((await redis.get(`cash_user:${userId}`)) || "null");
+  const cash = await db.cash.findUnique({
+    where: {
+      userId,
+    },
+  });
 
   if (!cash) {
-    cash = await db.cash.findUnique({
-      where: {
-        userId,
-      },
-    });
+    SendJSONResponse(res, false, 404, "Cash not found");
+    return;
+  }
 
-    await redis.setex(`cash_user:${userId}`, 60 * 10, JSON.stringify(cash));
+  if (cash.amount < amount) {
+    SendJSONResponse(res, false, 300, "Insufficient balance");
+    return;
   }
 
   const dailiLimit = cash?.dailyLimit || 100;
 
-  const currentDayTotalExpenseAmount = await db.cash.aggregate({
+  const currentDayTotalExpenseAmount = await db.expense.aggregate({
     where: {
       userId,
       createdAt: {
@@ -45,62 +49,38 @@ const AddNewExpense = Wrapper(async (req, res) => {
     return;
   }
 
-  const expense = await db.expense.create({
-    data: {
-      userId,
-      name,
-      amount,
-      category,
-      description,
-      recoverable,
-    },
-  });
-
-  await db.transaction.create({
-    data: {
-      userId,
-      amount,
-      transactionType: "OUT",
-      refId: expense.id,
-    },
-  });
-
-  if (!expense) {
-    SendJSONResponse(res, false, 400, "Failed to add expense");
-    return;
-  }
-
-  await redis.del(`expense_user:${userId}`);
-
-  await redis.setex(`expense_${expense.id}`, 60 * 10, JSON.stringify(expense));
-
-  await db.cash.update({
-    where: {
-      userId,
-    },
-    data: {
-      amount: {
-        decrement: amount,
+  await db.$transaction(async (tx) => {
+    const expense = await tx.expense.create({
+      data: {
+        userId,
+        name,
+        amount,
+        category,
+        description,
+        recoverable,
       },
-    },
-  });
+    });
 
-  await db.user.update({
-    where: {
-      id: userId,
-    },
-    data: {
-      expenses: {
-        connect: { id: expense.id },
+    const updatedCash = await tx.cash.update({
+      where: {
+        userId,
       },
-      cash: {
-        update: {
-          amount: {
-            decrement: amount,
-          },
+      data: {
+        amount: {
+          decrement: amount,
         },
       },
-    },
+    });
+
+    await tx.transaction.create({
+      data: {
+        userId,
+        amount,
+        transactionType: "OUT",
+        refId: expense.id,
+        currentBalance: updatedCash?.amount,
+      },
+    });
   });
 
   SendJSONResponse(res, true, 201, "Expense added successfully");
@@ -109,12 +89,6 @@ const AddNewExpense = Wrapper(async (req, res) => {
 
 const DeleteExpense = Wrapper(async (req, res) => {
   const { id } = req.params;
-
-  const expenseCache = JSON.parse((await redis.get(`expense_${id}`)) || "null");
-
-  if (expenseCache) {
-    await redis.del(`expense_${id}`);
-  }
 
   const expense = await db.expense.findUnique({
     where: {
@@ -127,9 +101,15 @@ const DeleteExpense = Wrapper(async (req, res) => {
     return;
   }
 
-  await db.expense.delete({
+  const deletedExpense = await db.expense.delete({
     where: {
       id,
+    },
+  });
+
+  await db.transaction.deleteMany({
+    where: {
+      refId: deletedExpense.id,
     },
   });
 
@@ -214,49 +194,45 @@ const UpdateExpense = Wrapper(async (req, res) => {
 const GetAllExpenses = Wrapper(async (req, res) => {
   const token = req.cookies.token as string;
 
-  const { id } = jwt.decode(token) as { id: string };
+  const { skip, take } = req.query;
 
-  console.log(id);
+  const { id } = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
 
-  let expenses = JSON.parse((await redis.get(`expenses_user:${id}`)) || "null");
-
-  if (expenses) {
-    SendJSONResponse(
-      res,
-      true,
-      200,
-      "Expenses fetched successfully (Redis)",
-      expenses,
-    );
-    return;
-  }
-
-  let user = JSON.parse((await redis.get(`user_${id}`)) || "null");
-
-  if (!user) {
-    user = await db.user.findUnique({
-      where: {
-        id,
-      },
-    });
-
-    await redis.setex(`user_${id}`, 60 * 10, JSON.stringify(user));
-  }
-
-  expenses = await db.expense.findMany({
+  const expenses = await db.expense.findMany({
     where: {
       userId: id?.toString(),
     },
+    skip: skip ? Number(skip) : undefined,
+    take: take ? Number(take) : undefined,
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
-  redis.setex(`expenses_user:${id}`, 60 * 10, JSON.stringify(expenses));
+  const metaData = await db.expense.aggregate({
+    where: {
+      userId: id?.toString(),
+    },
+    _count: {
+      id: true,
+    },
+    _sum: {
+      amount: true,
+    },
+  });
 
-  SendJSONResponse<typeof expenses>(
+  const data = {
+    expenses,
+    count : metaData._count.id,
+    total : metaData._sum.amount,
+  }
+
+  SendJSONResponse(
     res,
     true,
     200,
     "Expenses fetched successfully (DB)",
-    expenses,
+    data,
   );
   return;
 });

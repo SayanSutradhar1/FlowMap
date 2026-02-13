@@ -7,11 +7,14 @@ interface SendMailOptions {
   text: string;
 }
 
+const user = process.env.EMAIL_USER!;
+const pass = process.env.EMAIL_PASS!;
+
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
+    user,
+    pass,
   },
 });
 

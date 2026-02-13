@@ -9,7 +9,8 @@
     "studio": "cd server && npm run prisma:studio",
     "generate": "cd server && npm run prisma:generate",
     "migrate": "cd server && npm run prisma:migrate",
-    "dev": "concurrently \"npm run client\" \"npm run server\" \"npm run studio\""
+    "dev": "concurrently \"npm run client\" \"npm run server\" \"npm run studio\"",
+    "update":"npm run generate && npm run migrate"
   },
   "dependencies": {
     "concurrently": "^9.2.1"

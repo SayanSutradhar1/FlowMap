@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from "express";
+import SendJSONResponse from "./response";
 
 export type Controller = (
   req: Request,
@@ -14,7 +15,8 @@ const Wrapper =
     try {
       await fn(req, res, next);
     } catch (error) {
-      next(error);
+      console.log(error);
+      SendJSONResponse(res, false, 500, (error as Error).message || "Internal Server Error",);
     }
   };
 

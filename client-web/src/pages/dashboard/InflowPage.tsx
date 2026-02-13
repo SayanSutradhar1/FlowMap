@@ -1,4 +1,4 @@
-
+import ListSkeleton from "@/components/Layout/Skeletons/ListSkeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,6 +10,14 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { useUserContext } from "@/context/user.context";
 import {
     useAddNewInflowMutation,
@@ -49,15 +57,21 @@ const InflowPage = () => {
         to: "",
     });
 
+    const [currentPage, setCurrentPage] = useState(1);
+
     const { user } = useUserContext();
 
     const [addNewInflow] = useAddNewInflowMutation();
 
-    const { data: inflowsData } = useGetAllInflowsQuery(user?.id || "", {
+    const { data: inflowResponse, isLoading } = useGetAllInflowsQuery({
+        id: user?.id || "",
+        take: 10,
+        skip: (currentPage - 1) * 10,
+    }, {
         skip: !user?.id,
     });
 
-    const inflows = useMemo(() => inflowsData?.data || [], [inflowsData]);
+    const inflows = useMemo(() => inflowResponse?.data?.inflows || [], [inflowResponse?.data?.inflows]);
 
     const filteredInflows = useMemo(() => {
         return inflows.filter((inflow) => {
@@ -117,6 +131,20 @@ const InflowPage = () => {
             toast.dismiss(toastId);
         }
     };
+
+    const handleChangePage = (change: "next" | "previous") => {
+
+        if (change === "next" && inflows.length < 10) return
+        if (change === "previous" && currentPage === 1) return
+
+        if (change === "next") {
+            setCurrentPage((prev) => prev + 1)
+        } else {
+            setCurrentPage((prev) => prev - 1)
+        }
+
+        window.scrollTo({ top: 0, behavior: "smooth" })
+    }
 
     return (
         <motion.div
@@ -270,86 +298,100 @@ const InflowPage = () => {
             </motion.div>
 
             {/* Inflows List */}
-            <motion.div variants={itemVariants}>
-                <Card className="glass-card border-border/50">
-                    <CardHeader>
-                        <CardTitle className="text-lg font-semibold flex items-center justify-between">
-                            <span>All Inflows ({filteredInflows.length})</span>
-                            <span className="text-sm font-normal text-muted-foreground">
-                                Total: ₹
-                                {filteredInflows
-                                    .reduce((acc, inf) => acc + inf.amount, 0)
-                                    .toLocaleString()}
-                            </span>
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="space-y-3">
-                            {filteredInflows.map((inflow, index) => {
-                                return (
-                                    <motion.div
-                                        key={inflow.id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: index * 0.05 }}
-                                        className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/40 hover:bg-accent/5 transition-all duration-300 group"
-                                    >
-                                        <div className="flex items-center gap-4">
-                                            <div
-                                                className={`w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center`}
-                                            >
-                                                <TrendingUp className="w-5 h-5 text-emerald-500" />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-foreground">
-                                                    {inflow.description || "Inflow"}
-                                                </p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    <span className="text-xs px-2 py-0.5 rounded-md bg-secondary text-secondary-foreground font-medium">
-                                                        Income
-                                                    </span>
+            {isLoading ? (
+                <ListSkeleton />
+            ) : (
+                <motion.div variants={itemVariants}>
+                    <Card className="glass-card border-border/50">
+                        <CardHeader>
+                            <CardTitle className="text-lg font-semibold flex items-center justify-between">
+                                <span>All Inflows ({filteredInflows.length})({inflowResponse?.data?.count})</span>
+                                <span>
+                                    Page No: {currentPage}/{Math.ceil(inflowResponse?.data?.count! / 10)}
+                                </span>
+                                <span className="text-sm font-normal text-muted-foreground">
+                                    Total: ₹
+                                    {filteredInflows
+                                        .reduce((acc, inf) => acc + inf.amount, 0)
+                                        .toLocaleString()}/₹{inflowResponse?.data?.totalAmount}
+                                </span>
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>Source</TableHead>
+                                        <TableHead className="hidden md:table-cell">Date</TableHead>
+                                        <TableHead className="text-right">Amount</TableHead>
+                                        <TableHead className="w-[100px] text-right">Actions</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {filteredInflows.map((inflow) => (
+                                        <TableRow key={inflow.id} className="group">
+                                            <TableCell>
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
+                                                        <TrendingUp className="w-5 h-5 text-emerald-500" />
+                                                    </div>
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="font-semibold">{inflow.description || "Inflow"}</span>
+                                                        <span className="text-xs px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 font-medium w-fit border border-emerald-500/20">
+                                                            Income
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            <div className="text-right">
-                                                <p className="font-bold text-base text-emerald-500">
-                                                    +₹{inflow.amount.toLocaleString()}
-                                                </p>
-                                                <p className="text-xs text-muted-foreground font-medium">
-                                                    {new Date(inflow.createdAt).toLocaleDateString(
-                                                        "en-US",
-                                                        {
-                                                            month: "short",
-                                                            day: "numeric",
-                                                        }
-                                                    )}
-                                                </p>
-                                            </div>
-                                            <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 hover:bg-background/80"
-                                                >
-                                                    <Edit className="w-4 h-4 text-muted-foreground" />
-                                                </Button>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-8 w-8 hover:bg-destructive/10"
-                                                >
-                                                    <Trash2 className="w-4 h-4 text-destructive" />
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
-                    </CardContent>
-                </Card>
-            </motion.div>
+                                            </TableCell>
+                                            <TableCell className="hidden md:table-cell text-muted-foreground">
+                                                {new Date(inflow.createdAt).toLocaleDateString("en-US", {
+                                                    month: "short",
+                                                    day: "numeric",
+                                                    year: "numeric",
+                                                })}
+                                            </TableCell>
+                                            <TableCell className="text-right font-bold text-emerald-500">
+                                                +₹{inflow.amount.toLocaleString()}
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 hover:bg-background/80"
+                                                    >
+                                                        <Edit className="w-4 h-4 text-muted-foreground" />
+                                                    </Button>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="icon"
+                                                        className="h-8 w-8 hover:bg-destructive/10"
+                                                    >
+                                                        <Trash2 className="w-4 h-4 text-destructive" />
+                                                    </Button>
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                            {!filteredInflows.length && (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    No inflows found matching your criteria
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </motion.div>
+            )}
+            <div className="flex items-center justify-end gap-2 mr-4">
+                <Button variant="outline" onClick={() => handleChangePage("previous")}>
+                    Previous
+                </Button>
+                <Button variant="outline" onClick={() => handleChangePage("next")}>
+                    Next
+                </Button>
+            </div>
         </motion.div>
     );
 };

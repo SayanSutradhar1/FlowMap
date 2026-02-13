@@ -1,5 +1,5 @@
 import type { ApiResponse } from "@/utils/api";
-import type { ExpenseType } from "@/utils/types";
+import type { ExpenseType, PaginatedExpenseType } from "@/utils/types";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const expenseApi = createApi({
@@ -11,11 +11,18 @@ const expenseApi = createApi({
   reducerPath: "expenseApi",
   tagTypes: ["Expense"],
   endpoints: (builder) => ({
-    getAllExpenses: builder.query<ApiResponse<ExpenseType[]>, void>({
-      query: () => ({
+    getAllExpenses: builder.query<ApiResponse<PaginatedExpenseType>, {
+      take?:number,
+      skip?:number
+    }>({
+      query: ({take,skip}) => ({
         url: "/all",
         method: "GET",
         credentials: "include",
+        params:{
+          take : take ? take : undefined,
+          skip : skip ? skip : undefined
+        }
       }),
       providesTags: ["Expense"],
     }),
@@ -50,6 +57,7 @@ const expenseApi = createApi({
 
 export const {
   useGetAllExpensesQuery,
+  useLazyGetAllExpensesQuery,
   useGetExpensesByDaysQuery,
   useAddNewExpenseMutation,
 } = expenseApi;
