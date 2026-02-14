@@ -10,7 +10,13 @@
     "generate": "cd server && npm run prisma:generate",
     "migrate": "cd server && npm run prisma:migrate",
     "dev": "concurrently \"npm run client\" \"npm run server\" \"npm run studio\"",
-    "update":"npm run generate && npm run migrate"
+    "update":"npm run generate && npm run migrate",
+    "build:server":"cd server && npm run prisma:generate && npm run build",
+    "build:client":"cd client-web && npm run build",
+    "build":"npm run build:server && npm run build:client",
+    "start:client":"cd client-web && npx vite start",
+    "start:server":"cd server && npm run start",
+    "start":"concurrently \"npm run start:client\" \"npm run start:server\""
   },
   "dependencies": {
     "concurrently": "^9.2.1"
