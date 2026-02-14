@@ -1,12 +1,5 @@
-import { createContext, useContext, useState, type ReactNode } from "react";
-
-interface SidebarContextType {
-  collapsed: boolean;
-  setCollapsed: (collapsed: boolean) => void;
-  toggle: () => void;
-}
-
-const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+import { useState, type ReactNode } from "react";
+import { SidebarContext } from "./sidebar-context";
 
 export const SidebarProvider = ({ children }: { children: ReactNode }) => {
   const [collapsed, setCollapsed] = useState(false);
@@ -20,10 +13,3 @@ export const SidebarProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useSidebarContext = () => {
-  const context = useContext(SidebarContext);
-  if (!context) {
-    throw new Error("useSidebarContext must be used within a SidebarProvider");
-  }
-  return context;
-};

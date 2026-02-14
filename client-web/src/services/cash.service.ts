@@ -10,11 +10,11 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 const cashApi = createApi({
   reducerPath: "cashApi",
   baseQuery: fetchBaseQuery({
-    baseUrl:
-      `${import.meta.env.VITE_API_URL}/cash` ||
-      `http://localhost:4000/api/cash`,
+    baseUrl: import.meta.env.VITE_API_URL
+      ? `${import.meta.env.VITE_API_URL}/cash`
+      : `http://localhost:4000/api/cash`,
   }),
-  tagTypes: ["Cash","Inflow","Expense","Transaction"],
+  tagTypes: ["Cash", "Inflow", "Expense", "Transaction"],
   endpoints: (builder) => ({
     getCashDetails: builder.query<ApiResponse<CashDetailsType>, string>({
       query: (id) => `/getCashDetails/${id}`,
@@ -92,7 +92,7 @@ const cashApi = createApi({
           description,
         },
       }),
-      invalidatesTags: ["Cash","Expense","Transaction","Inflow"],
+      invalidatesTags: ["Cash", "Expense", "Transaction", "Inflow"],
     }),
   }),
 });

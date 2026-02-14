@@ -1,5 +1,6 @@
 import { Outlet } from "react-router-dom";
-import { SidebarProvider, useSidebarContext } from "@/context/sidebar.provider";
+import { SidebarProvider } from "@/context/sidebar.provider";
+import { useSidebarContext } from "@/context/sidebar-context";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardSidebar } from "./DashboardSidebar";
 

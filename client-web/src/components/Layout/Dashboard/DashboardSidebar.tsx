@@ -15,7 +15,7 @@ import {
   ArrowRightLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useSidebarContext } from "@/context/sidebar.provider";
+import { useSidebarContext } from "@/context/sidebar-context";
 import { signout } from "@/services/auth.service";
 import { toast } from "sonner";
 

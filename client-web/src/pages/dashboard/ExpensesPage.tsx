@@ -178,7 +178,7 @@ const ExpensesPage = () => {
       const response = await addNewExpense({
         // TODO: Replace hardcoded userId with actual user context
         name: name,
-        userId: user?.id!,
+        userId: user?.id || "",
         amount: amount,
         category: category,
         description: description,
@@ -376,7 +376,7 @@ const ExpensesPage = () => {
                 <CardTitle className="text-lg font-semibold flex items-center justify-between">
                   <span>All Expenses ({filteredExpenses.length})/({expensesDataResponse?.data?.count})</span>
                   <span>
-                    Page No: {currentPage}/{Math.ceil(expensesDataResponse?.data?.count! / 10)}
+                    Page No: {currentPage}/{Math.ceil((expensesDataResponse?.data?.count || 0) / 10)}
                   </span>
                   <span className="text-sm font-normal text-muted-foreground">
                     Total: ₹{filteredExpenses.reduce((acc, exp) => acc + exp.amount, 0).toLocaleString()}/₹{expensesDataResponse?.data?.total}

@@ -26,7 +26,7 @@ const Login = () => {
         navigate("/dashboard");
       }
       toast.success(response?.message);
-    } catch (error) {
+    } catch {
       // toast.error("Something went wrong");
     } finally {
       setIsLoading(false);

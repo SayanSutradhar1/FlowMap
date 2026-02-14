@@ -110,7 +110,7 @@ const BudgetPage = () => {
       } else {
         toast.error(response.message)
       }
-    } catch (error) {
+    } catch {
       toast.error("Something went wrong")
     } finally {
       setIsAddDialogOpen(false)

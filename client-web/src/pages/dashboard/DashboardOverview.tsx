@@ -74,7 +74,7 @@ const DashboardOverview = () => {
       icon: cashDetails?.monthlySavings && cashDetails?.monthlySavings > 0 ? TrendingUp : TrendingDown,
       color: cashDetails?.monthlySavings && cashDetails?.monthlySavings > 0 ? "from-emerald-500 to-emerald-500/60" : "from-red-500 to-red-500/60",
     },
-  ], [cashDetails, cashDetailsResponse])
+  ], [cashDetails])
 
   return (
     <motion.div

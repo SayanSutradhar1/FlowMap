@@ -429,7 +429,10 @@ const OverviewTabSkeleton = () => {
   );
 };
 
+const skeletonHeights = [...Array(12)].map(() => Math.random() * 60 + 20);
+
 const CategoriesTabSkeleton = () => {
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full">
       <Card className="glass-card border-border/50">
@@ -449,8 +452,8 @@ const CategoriesTabSkeleton = () => {
         </CardHeader>
         <CardContent>
           <div className="h-[300px] w-full flex items-end justify-between gap-2">
-            {[...Array(12)].map((_, i) => (
-              <Skeleton key={i} className="w-full rounded-t-md" style={{ height: `${Math.random() * 60 + 20}%` }} />
+            {skeletonHeights.map((height, i) => (
+              <Skeleton key={i} className="w-full rounded-t-md" style={{ height: `${height}%` }} />
             ))}
           </div>
         </CardContent>

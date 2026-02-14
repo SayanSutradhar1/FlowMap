@@ -4,9 +4,9 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const reportsApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl:
-      `${import.meta.env.VITE_API_URL}/reports` ||
-      "http://localhost:4000/api/reports",
+    baseUrl: import.meta.env.VITE_API_URL
+      ? `${import.meta.env.VITE_API_URL}/reports`
+      : "http://localhost:4000/api/reports",
   }),
   tagTypes: ["Reports"],
   endpoints: (builder) => ({

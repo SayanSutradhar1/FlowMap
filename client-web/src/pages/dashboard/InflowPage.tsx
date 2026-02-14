@@ -307,7 +307,7 @@ const InflowPage = () => {
                             <CardTitle className="text-lg font-semibold flex items-center justify-between">
                                 <span>All Inflows ({filteredInflows.length})({inflowResponse?.data?.count})</span>
                                 <span>
-                                    Page No: {currentPage}/{Math.ceil(inflowResponse?.data?.count! / 10)}
+                                    Page No: {currentPage}/{Math.ceil((inflowResponse?.data?.count || 0) / 10)}
                                 </span>
                                 <span className="text-sm font-normal text-muted-foreground">
                                     Total: ₹

@@ -70,7 +70,7 @@ const ReportsPage = () => {
 
   const handleGenerateReport = async () => {
 
-    const response = await getTransactionsReport({ id: user?.id!, m: selectedMonth.toString(), y: selectedYear.toString() }, true).unwrap();
+    const response = await getTransactionsReport({ id: user?.id || "", m: selectedMonth.toString(), y: selectedYear.toString() }, true).unwrap();
 
     if (response.success) {
       setTransactionsReport(response.data || []);

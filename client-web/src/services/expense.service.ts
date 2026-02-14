@@ -4,25 +4,28 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 const expenseApi = createApi({
   baseQuery: fetchBaseQuery({
-    baseUrl:
-      `${import.meta.env.VITE_API_URL}/expense` ||
-      `http://localhost:4000/api/expense`,
+    baseUrl: import.meta.env.VITE_API_URL
+      ? `${import.meta.env.VITE_API_URL}/expense`
+      : `http://localhost:4000/api/expense`,
   }),
   reducerPath: "expenseApi",
   tagTypes: ["Expense"],
   endpoints: (builder) => ({
-    getAllExpenses: builder.query<ApiResponse<PaginatedExpenseType>, {
-      take?:number,
-      skip?:number
-    }>({
-      query: ({take,skip}) => ({
+    getAllExpenses: builder.query<
+      ApiResponse<PaginatedExpenseType>,
+      {
+        take?: number;
+        skip?: number;
+      }
+    >({
+      query: ({ take, skip }) => ({
         url: "/all",
         method: "GET",
         credentials: "include",
-        params:{
-          take : take ? take : undefined,
-          skip : skip ? skip : undefined
-        }
+        params: {
+          take: take ? take : undefined,
+          skip: skip ? skip : undefined,
+        },
       }),
       providesTags: ["Expense"],
     }),
