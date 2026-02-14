@@ -19,7 +19,7 @@ export const WeeklySpendingChart = () => {
     const context = useUserContext();
     const user = useMemo(() => context.user, [context.user]);
 
-    const { data: recentTransactionsResponse,isLoading } = useGetTransactionsQuery({ id: user?.id || "", recent: true }, {
+    const { data: recentTransactionsResponse, isLoading } = useGetTransactionsQuery({ id: user?.id || "", recent: true }, {
         skip: !user?.id,
     });
 
@@ -99,7 +99,7 @@ export const WeeklySpendingChart = () => {
                                 }}
                                 itemStyle={{ color: "hsl(var(--foreground))" }}
                                 cursor={{ stroke: "#8b5cf6", strokeWidth: 1, strokeDasharray: "4 4" }}
-                                formatter={(value: number) => [`₹${value.toLocaleString()}`, "Amount"]}
+                                formatter={(value: any) => [`₹${(Number(value) || 0).toLocaleString()}`, "Amount"]}
                             />
                             <Area
                                 type="monotone"

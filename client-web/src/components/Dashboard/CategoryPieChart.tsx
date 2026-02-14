@@ -97,7 +97,7 @@ export const CategoryPieChart = () => {
                                     color: "hsl(var(--foreground))",
                                 }}
                                 itemStyle={{ color: "hsl(var(--foreground))" }}
-                                formatter={(value: number, name: string) => [`₹${value.toLocaleString()}`, name]}
+                                formatter={(value: any, name: string) => [`₹${(Number(value) || 0).toLocaleString()}`, name]}
                             />
                         </PieChart>
                     </ResponsiveContainer>
