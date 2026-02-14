@@ -21,7 +21,7 @@ const GetTransactionsReport = Wrapper(async (req, res) => {
 
   const transactions = await db.transaction.findMany({
     where: {
-      userId: id,
+      userId: id as string,
       createdAt: {
         gte: startDate,
         lte: endDate,

@@ -223,17 +223,11 @@ const GetAllExpenses = Wrapper(async (req, res) => {
 
   const data = {
     expenses,
-    count : metaData._count.id,
-    total : metaData._sum.amount,
-  }
+    count: metaData._count.id,
+    total: metaData._sum.amount,
+  };
 
-  SendJSONResponse(
-    res,
-    true,
-    200,
-    "Expenses fetched successfully (DB)",
-    data,
-  );
+  SendJSONResponse(res, true, 200, "Expenses fetched successfully (DB)", data);
   return;
 });
 
@@ -285,7 +279,7 @@ const GetMonthlyExpenses = Wrapper(async (req, res) => {
 
   const expenses = await db.expense.findMany({
     where: {
-      userId: id,
+      userId: id as string,
       createdAt: {
         gte: new Date(new Date().getFullYear(), Number(month) - 1, 1),
         lte: new Date(new Date().getFullYear(), Number(month), 1),

@@ -6,7 +6,7 @@ const CheckUserExistance = Wrapper(async (req, res, next) => {
   const { id } = req.params;
 
   const user = await db.user.findUnique({
-    where: { id },
+    where: { id: id as string },
   });
 
   if (!user) {
@@ -20,4 +20,3 @@ const CheckUserExistance = Wrapper(async (req, res, next) => {
 });
 
 export { CheckUserExistance };
-

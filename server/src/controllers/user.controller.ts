@@ -22,41 +22,40 @@ const NewUser = Wrapper(async (req, res) => {
 
     try {
       await Promise.all([
-      db.cashRecovery.deleteMany({
-        where: {
-          expense: {
+        db.cashRecovery.deleteMany({
+          where: {
+            expense: {
+              userId: user.id,
+            },
+          },
+        }),
+        db.transaction.deleteMany({
+          where: { userId: user.id },
+        }),
+        db.cash.delete({
+          where: { userId: user.id },
+        }),
+        db.expense.deleteMany({
+          where: { userId: user.id },
+        }),
+        db.inflow.deleteMany({
+          where: { userId: user.id },
+        }),
+        db.budget.deleteMany({
+          where: {
             userId: user.id,
+            category: {
+              in: [...Object.values(ExpenseCategory)],
+            },
           },
-        },
-      }),
-      db.transaction.deleteMany({
-        where: { userId: user.id },
-      }),
-      db.cash.delete({
-        where: { userId: user.id },
-      }),
-      db.expense.deleteMany({
-        where: { userId: user.id },
-      }),
-      db.inflow.deleteMany({
-        where: { userId: user.id },
-      }),
-      db.budget.deleteMany({
-        where: {
-          userId: user.id,
-          category: {
-            in: [...Object.values(ExpenseCategory)],
-          },
-        },
-      }),
-      db.user.delete({
-        where: { id: user.id },
-      }),
-    ]);
+        }),
+        db.user.delete({
+          where: { id: user.id },
+        }),
+      ]);
     } catch (error) {
       console.log(error);
     }
-    
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -232,7 +231,7 @@ const GetUserByEmail = Wrapper(async (req, res) => {
   }
 
   user = await db.user.findUnique({
-    where: { email },
+    where: { email: email as string },
   });
 
   if (!user) {
