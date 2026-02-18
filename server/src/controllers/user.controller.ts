@@ -166,6 +166,11 @@ const VerifyUser = Wrapper(async (req, res) => {
 const RemoveUser = Wrapper(async (req, res, next) => {
   const { id } = req.params;
 
+  if (typeof id !== "string") {
+    SendJSONResponse(res, false, 400, "Invalid user id");
+    return;
+  }
+
   const user = await db.user.delete({
     where: { id },
   });
@@ -188,6 +193,11 @@ const RemoveUser = Wrapper(async (req, res, next) => {
 
 const GetUser = Wrapper(async (req, res, next) => {
   const { id } = req.params;
+
+  if (typeof id !== "string") {
+    SendJSONResponse(res, false, 400, "Invalid user id");
+    return;
+  }
 
   // let user = JSON.parse((await redis.get(`user_${id}`)) || "null");
 

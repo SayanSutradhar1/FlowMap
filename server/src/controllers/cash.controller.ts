@@ -58,7 +58,6 @@ const AddInflow = Wrapper(async (req, res) => {
 });
 
 const RecoverCash = Wrapper(async (req, res) => {
-
   // Path -> /api/cash/recoverCash/:id
 
   const { id } = req.params;
@@ -104,7 +103,7 @@ const RecoverCash = Wrapper(async (req, res) => {
       data: {
         userId: String(id),
         amount: expense.amount,
-        description : `Cash Recovered from ${expense.name}`,
+        description: `Cash Recovered from ${expense.name}`,
       },
     });
 
@@ -335,15 +334,21 @@ const GetCashDetails = Wrapper(async (req, res) => {
   // Path -> /api/cash/getCashDetails/:id
 
   const { id } = req.params;
+
+  if (typeof id !== "string") {
+    SendJSONResponse(res, false, 400, "Invalid user id");
+    return;
+  }
+
   const cash = await db.cash.findUnique({
     where: {
-      userId: id,
+      userId: String(id),
     },
   });
 
   const monthlyExpense = await db.expense.aggregate({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().setDate(new Date().getDate() - Number(30))),
       },
@@ -355,7 +360,7 @@ const GetCashDetails = Wrapper(async (req, res) => {
 
   const totalMonthlyInflow = await db.inflow.aggregate({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().setDate(new Date().getDate() - Number(30))),
       },
@@ -371,7 +376,7 @@ const GetCashDetails = Wrapper(async (req, res) => {
       amount: true,
     },
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().setDate(new Date().getDate() - Number(30))),
       },
@@ -381,10 +386,15 @@ const GetCashDetails = Wrapper(async (req, res) => {
   const data = {
     amount: cash?.amount,
     dailyLimit: cash?.dailyLimit,
-    monthlyExpense: monthlyExpense._sum.amount ?? 0,
-    monthlyInflow: totalMonthlyInflow._sum.amount ?? 0,
-    monthlySavings: totalMonthlyInflow._sum.amount
-      ? totalMonthlyInflow._sum.amount - (monthlyExpense._sum.amount ?? 0)
+    monthlyExpense: monthlyExpense._sum
+      ? Number(monthlyExpense._sum.amount)
+      : 0,
+    monthlyInflow: totalMonthlyInflow._sum
+      ? Number(totalMonthlyInflow._sum.amount)
+      : 0,
+    monthlySavings: totalMonthlyInflow._sum
+      ? Number(totalMonthlyInflow._sum.amount) -
+        Number(monthlyExpense._sum?.amount ?? 0)
       : 0,
     categoryDistribution,
   };
@@ -397,11 +407,17 @@ const GetMonthlyInflow = Wrapper(async (req, res) => {
   // Path -> /api/cash/getMonthlyInflow/:id
 
   const { id } = req.params;
+
+  if (typeof id !== "string") {
+    SendJSONResponse(res, false, 400, "Invalid user id");
+    return;
+  }
+
   const { month } = req.query;
 
   const inflows = await db.inflow.findMany({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().getFullYear(), Number(month) - 1, 1),
         lte: new Date(new Date().getFullYear(), Number(month), 1),
@@ -424,11 +440,16 @@ const GetInflows = Wrapper(async (req, res) => {
 
   const { id } = req.params;
 
+  if (typeof id !== "string") {
+    SendJSONResponse(res, false, 400, "Invalid user id");
+    return;
+  }
+
   const { take, skip } = req.query;
 
   const inflows = await db.inflow.findMany({
     where: {
-      userId: id,
+      userId: String(id),
     },
     take: take ? Number(take) : undefined,
     skip: skip ? Number(skip) : undefined,
@@ -439,7 +460,7 @@ const GetInflows = Wrapper(async (req, res) => {
 
   const metaData = await db.inflow.aggregate({
     where: {
-      userId: id,
+      userId: String(id),
     },
     _count: {
       id: true,
@@ -451,8 +472,8 @@ const GetInflows = Wrapper(async (req, res) => {
 
   const data = {
     inflows,
-    count: metaData._count.id,
-    totalAmount: metaData._sum.amount,
+    count: metaData._count ? metaData._count.id : 0,
+    totalAmount: metaData._sum ? metaData._sum.amount : 0,
   };
 
   SendJSONResponse(res, true, 200, "Inflows fetched successfully", data);

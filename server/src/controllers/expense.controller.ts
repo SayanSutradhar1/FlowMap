@@ -90,6 +90,11 @@ const AddNewExpense = Wrapper(async (req, res) => {
 const DeleteExpense = Wrapper(async (req, res) => {
   const { id } = req.params;
 
+  if (typeof id !== "string") {
+    SendJSONResponse(res, false, 400, "Invalid expense id");
+    return;
+  }
+
   const expense = await db.expense.findUnique({
     where: {
       id,
@@ -136,6 +141,12 @@ const DeleteExpense = Wrapper(async (req, res) => {
 
 const UpdateExpense = Wrapper(async (req, res) => {
   const { id } = req.params;
+
+  if (typeof id !== "string") {
+    SendJSONResponse(res, false, 400, "Invalid expense id");
+    return;
+  }
+
   const { amount, category, description, recoverable } = req.body;
 
   let expense = JSON.parse((await redis.get(`expense_${id}`)) || "null");
@@ -233,6 +244,12 @@ const GetAllExpenses = Wrapper(async (req, res) => {
 
 const GetExpenses = Wrapper(async (req, res) => {
   const { id } = req.params;
+
+  if (typeof id !== "string") {
+    SendJSONResponse(res, false, 400, "Invalid user id");
+    return;
+  }
+
   const { f, t } = req.query; // d -> Days
 
   let expenses = JSON.parse(
