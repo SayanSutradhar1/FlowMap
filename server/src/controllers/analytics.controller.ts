@@ -6,7 +6,7 @@ const BasicAnalytics = Wrapper(async (req, res) => {
   const { id } = req.params;
 
   const expenses = await db.expense.findMany({
-    where: { userId: id },
+    where: { userId: String(id) },
     select: { amount: true, createdAt: true, category: true },
   });
 
@@ -65,7 +65,7 @@ const CoreAnalysisByMonth = Wrapper(async (req, res) => {
 
   const expenses = await db.expense.findMany({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().getFullYear(), 0, 1),
       },
@@ -78,7 +78,7 @@ const CoreAnalysisByMonth = Wrapper(async (req, res) => {
 
   const inflows = await db.inflow.findMany({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().getFullYear(), 0, 1),
       },
@@ -134,7 +134,7 @@ const GetCategoryDistribution = Wrapper(async (req, res) => {
 
   const expenses = await db.expense.findMany({
     where: {
-      userId: id,
+      userId: String(id),
     },
     select: {
       amount: true,

@@ -7,7 +7,7 @@ const GetBudgetDetails = Wrapper(async (req, res) => {
 
   const budgets = await db.budget.findMany({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
       },
@@ -23,14 +23,14 @@ const GetBudgetDetails = Wrapper(async (req, res) => {
           amount: true,
         },
         where: {
-          userId: id,
+          userId: String(id),
           category: category,
           createdAt: {
             gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
           },
         },
       });
-      const amount = sum._sum.amount;
+      const amount = sum._sum.amount || 0;
 
       return {
         category,
@@ -51,12 +51,12 @@ const UpdateBudget = Wrapper(async (req, res) => {
   const budget = await db.budget.upsert({
     where: {
       userId_category: {
-        userId: id,
+        userId: String(id),
         category: category,
       },
     },
     create: {
-      userId: id,
+      userId: String(id),
       category,
       amount,
     },

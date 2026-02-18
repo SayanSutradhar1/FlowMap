@@ -68,7 +68,7 @@ const RecoverCash = Wrapper(async (req, res) => {
     const expense = await tx.expense.update({
       where: {
         id: expenseId,
-        userId: id,
+        userId: String(id),
         recoverable: true,
       },
       data: {
@@ -91,7 +91,7 @@ const RecoverCash = Wrapper(async (req, res) => {
 
     const updatedCash = await tx.cash.update({
       where: {
-        userId: id,
+        userId: String(id),
       },
       data: {
         amount: {
@@ -102,7 +102,7 @@ const RecoverCash = Wrapper(async (req, res) => {
 
     const inflow = await tx.inflow.create({
       data: {
-        userId: id,
+        userId: String(id),
         amount: expense.amount,
         description : `Cash Recovered from ${expense.name}`,
       },
@@ -110,7 +110,7 @@ const RecoverCash = Wrapper(async (req, res) => {
 
     const transaction = await tx.transaction.create({
       data: {
-        userId: id,
+        userId: String(id),
         amount: expense.amount,
         transactionType: "IN",
         refId: inflow.id,
@@ -138,7 +138,7 @@ const GetCash = Wrapper(async (req, res) => {
 
   const cash = await db.cash.findUnique({
     where: {
-      userId: id,
+      userId: String(id),
     },
   });
 
@@ -163,7 +163,7 @@ const SetDailyLimit = Wrapper(async (req, res) => {
 
   await db.cash.update({
     where: {
-      userId: id,
+      userId: String(id),
     },
     data: {
       dailyLimit,
@@ -182,7 +182,7 @@ const GetMonthlySavings = Wrapper(async (req, res) => {
 
   const totalInflow = await db.inflow.aggregate({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().getFullYear(), Number(month) - 1, 1),
         lte: new Date(new Date().getFullYear(), Number(month), 1),
@@ -195,7 +195,7 @@ const GetMonthlySavings = Wrapper(async (req, res) => {
 
   const totalExpense = await db.expense.aggregate({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().getFullYear(), Number(month) - 1, 1),
         lte: new Date(new Date().getFullYear(), Number(month), 1),
@@ -206,8 +206,8 @@ const GetMonthlySavings = Wrapper(async (req, res) => {
     },
   });
 
-  const savings = totalInflow._sum.amount
-    ? totalInflow._sum.amount - (totalExpense._sum.amount ?? 0)
+  const savings = Number(totalInflow._sum.amount)
+    ? Number(totalInflow._sum.amount) - (Number(totalExpense._sum.amount) ?? 0)
     : 0;
 
   SendJSONResponse(res, true, 200, "Savings fetched successfully", savings);
@@ -222,7 +222,7 @@ const GetSavings = Wrapper(async (req, res) => {
 
   const totalInflow = await db.inflow.aggregate({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().setDate(new Date().getDate() - Number(f))),
         lte: new Date(new Date().setDate(new Date().getDate() + Number(t))),
@@ -235,7 +235,7 @@ const GetSavings = Wrapper(async (req, res) => {
 
   const totalExpense = await db.expense.aggregate({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: new Date(new Date().setDate(new Date().getDate() - Number(f))),
         lte: new Date(new Date().setDate(new Date().getDate() + Number(t))),
@@ -262,7 +262,7 @@ const GetTransactions = Wrapper(async (req, res) => {
 
   const transactions = await db.transaction.findMany({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: f
           ? new Date(new Date().setDate(new Date().getDate() - Number(f)))
@@ -281,7 +281,7 @@ const GetTransactions = Wrapper(async (req, res) => {
 
   const metaData = await db.transaction.aggregate({
     where: {
-      userId: id,
+      userId: String(id),
       createdAt: {
         gte: f
           ? new Date(new Date().setDate(new Date().getDate() - Number(f)))
