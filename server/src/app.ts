@@ -12,12 +12,11 @@ class Application {
     this.name = name;
   }
 
-  init() {
+  init(clientURL?: string) {
     this.app.use(express.json());
-    console.log(process.env.CLIENT_URL);
     this.app.use(
       cors({
-        origin: process.env.CLIENT_URL,
+        origin: clientURL || process.env.CLIENT_URL,
         credentials: true,
         methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
       })

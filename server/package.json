@@ -5,8 +5,10 @@
   "main": "dist/src/main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "set NODE_ENV=production && node dist/src/main.js",
-    "dev": "set NODE_ENV=development && nodemon --exec ts-node src/main.ts",
+    "start": "set NODE_ENV=production&& node dist/src/main.js",
+    "start:client": "set NODE_ENV=production&& node dist/src/client.js",
+    "dev": "set NODE_ENV=development&& nodemon --exec ts-node src/main.ts",
+    "dev:client": "set NODE_ENV=development&& nodemon --exec ts-node src/client.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
