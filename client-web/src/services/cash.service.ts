@@ -4,6 +4,7 @@ import type {
   InflowType,
   PaginatedInflowType,
   PaginatedTransactionType,
+  PaginatedCashRecoveryType,
 } from "@/utils/types";
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
@@ -79,6 +80,23 @@ const cashApi = createApi({
       }),
       invalidatesTags: ["Cash"],
     }),
+    getAllCashRecoveries: builder.query<
+      ApiResponse<PaginatedCashRecoveryType>,
+      {
+        id: string;
+        take?: number;
+        skip?: number;
+      }
+    >({
+      query: ({ id, take, skip }) => ({
+        url: `/getCashRecoveries/${id}`,
+        params: {
+          take,
+          skip,
+        },
+      }),
+      providesTags: ["Cash"],
+    }),
     recoverCash: builder.mutation<
       ApiResponse,
       { id: string; expenseId: string; description?: string }
@@ -103,6 +121,7 @@ export const {
   useGetMonthlyInflowQuery,
   useAddNewInflowMutation,
   useGetAllInflowsQuery,
+  useGetAllCashRecoveriesQuery,
   useRecoverCashMutation,
 } = cashApi;
 

@@ -142,7 +142,7 @@ const AnalyticsPage = () => {
 
       return {
         month: monthNames[expense.month],
-        income: inflow?.amount || 0,
+        inflow: inflow?.amount || 0,
         expenses: expense.amount || 0,
         savings: savings?.amount || 0,
       };
@@ -249,18 +249,18 @@ const AnalyticsPage = () => {
             {isLoading ? <OverviewTabSkeleton /> : (
               <Card className="glass-card border-border/50">
                 <CardHeader>
-                  <CardTitle className="text-lg font-semibold">Income vs Expenses vs Savings</CardTitle>
+                  <CardTitle className="text-lg font-semibold">Inflow vs Outflow vs Savings</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[400px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={monthlyData}>
                         <defs>
-                          <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient id="colorInflow" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
                             <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
                           </linearGradient>
-                          <linearGradient id="colorExpenses" x1="0" y1="0" x2="0" y2="1">
+                          <linearGradient id="colorOutflow" x1="0" y1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.3} />
                             <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
                           </linearGradient>
@@ -269,24 +269,38 @@ const AnalyticsPage = () => {
                             <stop offset="95%" stopColor="#14b8a6" stopOpacity={0} />
                           </linearGradient>
                         </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                        <XAxis dataKey="month" stroke="hsl(var(--muted-foreground))" />
-                        <YAxis stroke="hsl(var(--muted-foreground))" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                        <XAxis
+                          dataKey="month"
+                          stroke="#64748b"
+                          tick={{ fill: '#94a3b8', fontSize: 12 }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
+                        <YAxis
+                          stroke="#64748b"
+                          tick={{ fill: '#94a3b8', fontSize: 12 }}
+                          tickLine={false}
+                          axisLine={false}
+                        />
                         <Tooltip
                           contentStyle={{
                             backgroundColor: "hsl(var(--card))",
                             border: "1px solid hsl(var(--border))",
                             borderRadius: "8px",
+                            color: "hsl(var(--foreground))"
                           }}
+                          itemStyle={{ color: "hsl(var(--foreground))" }}
+                          labelStyle={{ color: "hsl(var(--muted-foreground))" }}
                         />
-                        <Legend />
+                        <Legend formatter={(value) => <span style={{ color: "hsl(var(--foreground))" }}>{value}</span>} />
                         <Area
                           type="monotone"
-                          dataKey="income"
+                          dataKey="inflow"
                           stroke="#10b981"
                           strokeWidth={2}
                           fillOpacity={1}
-                          fill="url(#colorIncome)"
+                          fill="url(#colorInflow)"
                         />
                         <Area
                           type="monotone"
@@ -294,7 +308,7 @@ const AnalyticsPage = () => {
                           stroke="#f59e0b"
                           strokeWidth={2}
                           fillOpacity={1}
-                          fill="url(#colorExpenses)"
+                          fill="url(#colorOutflow)"
                         />
                         <Area
                           type="monotone"
@@ -336,8 +350,16 @@ const AnalyticsPage = () => {
                               <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
                           </Pie>
-                          <Tooltip />
-                          <Legend />
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: "#1e293b",
+                              border: "1px solid rgba(255,255,255,0.1)",
+                              borderRadius: "12px",
+                              color: "#f8fafc"
+                            }}
+                            itemStyle={{ color: "#f8fafc" }}
+                          />
+                          <Legend formatter={(value) => <span style={{ color: "hsl(var(--foreground))" }}>{value}</span>} />
                         </PieChart>
                       </ResponsiveContainer>
                     </div>
@@ -352,9 +374,20 @@ const AnalyticsPage = () => {
                     <div className="h-[300px] w-full overflow-hidden">
                       <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={monthlyCatTrend}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="monthName" stroke="hsl(var(--muted-foreground))" />
-                          <YAxis stroke="hsl(var(--muted-foreground))" />
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                          <XAxis
+                            dataKey="monthName"
+                            stroke="#64748b"
+                            tick={{ fill: '#94a3b8', fontSize: 12 }}
+                            tickLine={false}
+                            axisLine={false}
+                          />
+                          <YAxis
+                            stroke="#64748b"
+                            tick={{ fill: '#94a3b8', fontSize: 12 }}
+                            tickLine={false}
+                            axisLine={false}
+                          />
                           <Tooltip
                             content={({ active, payload }) => {
                               if (active && payload && payload.length) {
@@ -372,7 +405,7 @@ const AnalyticsPage = () => {
                               return null;
                             }}
                           />
-                          <Bar dataKey="topCategoryAmount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                          <Bar dataKey="topCategoryAmount" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                         </BarChart>
                       </ResponsiveContainer>
                     </div>
@@ -418,7 +451,7 @@ const OverviewTabSkeleton = () => {
   return (
     <Card className="glass-card border-border/50">
       <CardHeader>
-        <CardTitle className="text-lg font-semibold">Income vs Expenses vs Savings</CardTitle>
+        <CardTitle className="text-lg font-semibold">Inflow vs Outflow vs Savings</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[400px] w-full">

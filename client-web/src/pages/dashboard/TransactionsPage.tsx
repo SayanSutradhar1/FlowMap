@@ -130,8 +130,8 @@ const TransactionsPage = () => {
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem value="all">All Types</SelectItem>
-                                        <SelectItem value="IN">Income</SelectItem>
-                                        <SelectItem value="OUT">Expense</SelectItem>
+                                        <SelectItem value="IN">Inflow</SelectItem>
+                                        <SelectItem value="OUT">Outflow</SelectItem>
                                     </SelectContent>
                                 </Select>
                                 <Button
@@ -234,7 +234,7 @@ const TransactionsPage = () => {
                                                         ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                                                         : "bg-red-500/10 text-red-600 border border-red-500/20"
                                                         }`}>
-                                                        {transaction.transactionType === "IN" ? "Income" : "Expense"}
+                                                        {transaction.transactionType === "IN" ? "Inflow" : "Outflow"}
                                                     </span>
                                                 </div>
                                             </TableCell>

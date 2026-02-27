@@ -16,6 +16,7 @@ import RemindersPage from "./pages/dashboard/RemindersPage";
 import ReportsPage from "./pages/dashboard/ReportsPage";
 import SettingsPage from "./pages/dashboard/SettingsPage";
 import TransactionsPage from "./pages/dashboard/TransactionsPage";
+import RecoveriesPage from "./pages/dashboard/RecoveriesPage";
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="reminders" element={<RemindersPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="recoveries" element={<RecoveriesPage />} />
           </Route>
         </Route>
       </Routes>

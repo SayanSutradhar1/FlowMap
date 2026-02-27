@@ -13,6 +13,7 @@ import {
   TrendingUp,
   Bell,
   ArrowRightLeft,
+  History,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSidebarContext } from "@/context/sidebar-context";
@@ -23,6 +24,7 @@ const menuItems = [
   { icon: LayoutDashboard, label: "Overview", path: "/dashboard" },
   { icon: Receipt, label: "Expenses", path: "/dashboard/expenses" },
   { icon: Wallet, label: "Inflow", path: "/dashboard/inflow" },
+  { icon: History, label: "Recoveries", path: "/dashboard/recoveries" },
   { icon: ArrowRightLeft, label: "Transactions", path: "/dashboard/transactions" },
   { icon: BarChart3, label: "Analytics", path: "/dashboard/analytics" },
   { icon: Target, label: "Budget Goals", path: "/dashboard/budget" },

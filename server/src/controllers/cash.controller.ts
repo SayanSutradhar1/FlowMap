@@ -1,6 +1,5 @@
 import { Inflow } from "../../generated/prisma/browser";
 import { db } from "../config/prisma";
-import { redis } from "../main";
 import Wrapper from "../utils/asyncWrapper";
 import SendJSONResponse from "../utils/response";
 
@@ -58,10 +57,25 @@ const AddInflow = Wrapper(async (req, res) => {
 });
 
 const RecoverCash = Wrapper(async (req, res) => {
-  // Path -> /api/cash/recoverCash/:id
+  // Path -> /api/cash/recoverCash/:id POST
 
   const { id } = req.params;
   const { expenseId, description } = req.body;
+
+  const isExpenseExists = Boolean(
+    await db.expense.findUnique({
+      where: {
+        id: expenseId,
+        userId: String(id),
+        recoverable: true,
+      },
+    }),
+  );
+
+  if (!isExpenseExists) {
+    SendJSONResponse(res, false, 404, "Expense Not found");
+    return;
+  }
 
   await db.$transaction(async (tx) => {
     const expense = await tx.expense.update({
@@ -129,6 +143,52 @@ const RecoverCash = Wrapper(async (req, res) => {
   });
 
   SendJSONResponse(res, true, 200, "Cash recovered successfully");
+  return;
+});
+
+const GetAllCashRecoveries = Wrapper(async (req, res) => {
+  // Path -> /api/cash/getCashRecoveries/:id
+
+  const { id } = req.params;
+  const { take, skip } = req.query;
+
+  const cashRecoveries = await db.cashRecovery.findMany({
+    where: {
+      expense: {
+        userId: String(id),
+      },
+    },
+    include: {
+      expense: true,
+    },
+    take: take ? Number(take) : undefined,
+    skip: skip ? Number(skip) : undefined,
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  const metaData = await db.cashRecovery.aggregate({
+    where: {
+      expense: {
+        userId: String(id),
+      },
+    },
+    _count: {
+      id: true,
+    },
+    _sum: {
+      amount: true,
+    },
+  });
+
+  const data = {
+    recoveries: cashRecoveries,
+    count: metaData._count ? metaData._count.id : 0,
+    totalAmount: metaData._sum ? metaData._sum.amount : 0,
+  };
+
+  SendJSONResponse(res, true, 200, "Cash Recoveries Fetched", data);
   return;
 });
 
@@ -491,4 +551,5 @@ export {
   GetMonthlyInflow,
   GetInflows,
   AddInflow,
+  GetAllCashRecoveries,
 };

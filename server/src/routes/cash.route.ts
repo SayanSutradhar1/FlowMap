@@ -9,6 +9,7 @@ import {
   GetInflows,
   AddInflow,
   RecoverCash,
+  GetAllCashRecoveries,
 } from "../controllers/cash.controller";
 
 const cashRouter = Router();
@@ -22,5 +23,6 @@ cashRouter.route("/getMonthlyInflow/:id").get(GetMonthlyInflow);
 cashRouter.route("/getInflows/:id").get(GetInflows);
 cashRouter.route("/addInflow").post( AddInflow);
 cashRouter.route("/recoverCash/:id").post(RecoverCash);
+cashRouter.route("/getCashRecoveries/:id").get(GetAllCashRecoveries)
 
 export default cashRouter;

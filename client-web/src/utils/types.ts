@@ -60,9 +60,9 @@ export interface ExpenseType {
 }
 
 export interface PaginatedExpenseType {
-  expenses : ExpenseType[]
-  count : number
-  total : number
+  expenses: ExpenseType[];
+  count: number;
+  total: number;
 }
 
 export interface TransactionType {
@@ -202,9 +202,20 @@ export type ExpenseCategory =
   | "MISCELLANEOUS"
   | "OTHER";
 
-export type Gender =
-  | "MALE"
-  | "FEMALE"
-  | "OTHER";
+export type Gender = "MALE" | "FEMALE" | "OTHER";
 
+export interface CashRecoveryType {
+  id: string;
+  expenseId: string;
+  expense: ExpenseType;
+  description: string | null;
+  amount: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
+export interface PaginatedCashRecoveryType {
+  recoveries: CashRecoveryType[];
+  count: number;
+  totalAmount: number;
+}
