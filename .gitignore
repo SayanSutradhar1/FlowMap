@@ -24,3 +24,5 @@ logs
 # Other
 .DS_Store
 Thumbs.db
+.env
+*.pem
