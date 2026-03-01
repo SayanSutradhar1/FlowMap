@@ -11,7 +11,7 @@ const app = client.getApp();
 let relativePath = "../../client-web/dist";
 
 if (process.env.NODE_ENV?.trim() === "production") {
-  relativePath = "../../../client-web/dist";
+  relativePath = "../../client-web/dist";
 }
 
 const publicPath = path.join(__dirname, relativePath);
